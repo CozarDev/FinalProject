@@ -1,7 +1,12 @@
 package com.proyectofinal.backend.Requests;
 
+import javax.validation.constraints.NotBlank;
+
 public class AuthRequest {
+    @NotBlank(message = "El nombre de usuario es obligatorio")
     private String username;
+
+    @NotBlank(message = "La contraseña es obligatoria")
     private String password;
 
     // Getters y setters

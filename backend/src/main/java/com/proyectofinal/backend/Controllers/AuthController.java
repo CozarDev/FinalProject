@@ -3,12 +3,16 @@ package com.proyectofinal.backend.Controllers;
 import com.proyectofinal.backend.Models.User;
 import com.proyectofinal.backend.Repositories.UserRepository;
 import com.proyectofinal.backend.Requests.AuthRequest;
+import com.proyectofinal.backend.Services.JWTService;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -17,24 +21,13 @@ public class AuthController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JWTService jwtService;
+    private final Set<String> revokedTokens = new HashSet<>();
 
-    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public AuthController(UserRepository userRepository, PasswordEncoder passwordEncoder, JWTService jwtService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<String> register(@RequestBody AuthRequest request) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("El usuario ya existe");
-        }
-
-        User newUser = new User();
-        newUser.setUsername(request.getUsername());
-        newUser.setPassword(passwordEncoder.encode(request.getPassword()));
-        userRepository.save(newUser);
-
-        return ResponseEntity.status(HttpStatus.CREATED).body("Usuario registrado correctamente");
+        this.jwtService = jwtService;
     }
 
     @PostMapping("/login")
@@ -50,6 +43,21 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
         }
 
-        return ResponseEntity.ok("Inicio de sesión exitoso (JWT irá aquí más adelante)");
+        String token = jwtService.generateToken(user.getUsername());
+        return ResponseEntity.ok(token);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
+        // Eliminar el prefijo "Bearer " del token
+        String jwtToken = token.replace("Bearer ", "");
+        // Añadir el token a la lista de tokens revocados
+        revokedTokens.add(jwtToken);
+        return ResponseEntity.ok("Logout exitoso");
+    }
+
+    // Método para verificar si un token está revocado
+    public boolean isTokenRevoked(String token) {
+        return revokedTokens.contains(token);
     }
 }

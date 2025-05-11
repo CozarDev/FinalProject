@@ -16,6 +16,7 @@ public class User implements UserDetails {
 
     private String username;
     private String password;
+    private String role;
 
     // === CONSTRUCTORES ===
 
@@ -52,6 +53,14 @@ public class User implements UserDetails {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public String getRole() {
+        return role;
+    }
+
+    public void setRole(String role) {
+        this.role = role;
     }
 
     // === MÉTODOS DE UserDetails ===
