@@ -30,6 +30,7 @@ public class AuthController {
         this.jwtService = jwtService;
     }
 
+    // Maneja el proceso de inicio de sesión y genera un token JWT si las credenciales son correctas
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody AuthRequest request) {
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
@@ -47,6 +48,7 @@ public class AuthController {
         return ResponseEntity.ok(token);
     }
 
+    // Maneja el proceso de cierre de sesión y revoca el token JWT
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader("Authorization") String token) {
         // Eliminar el prefijo "Bearer " del token

@@ -18,16 +18,19 @@ public class IncidentController {
         this.incidentRepository = incidentRepository;
     }
 
+    // Devuelve una lista de todos los incidentes
     @GetMapping
     public List<Incident> getAllIncidents() {
         return incidentRepository.findAll();
     }
 
+    // Crea un nuevo incidente y lo guarda en la base de datos
     @PostMapping
     public Incident createIncident(@RequestBody Incident incident) {
         return incidentRepository.save(incident);
     }
 
+    // Actualiza un incidente existente basado en su ID
     @PutMapping("/{id}")
     public ResponseEntity<Incident> updateIncident(@PathVariable String id, @RequestBody Incident incidentDetails) {
         Optional<Incident> incidentOpt = incidentRepository.findById(id);
@@ -42,6 +45,7 @@ public class IncidentController {
         }
     }
 
+    // Elimina un incidente basado en su ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteIncident(@PathVariable String id) {
         if (incidentRepository.existsById(id)) {

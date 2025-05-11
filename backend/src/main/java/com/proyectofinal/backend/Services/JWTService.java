@@ -14,6 +14,7 @@ public class JWTService {
     private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
     private final long EXPIRATION_TIME = 86400000; // 1 día
 
+    // Genera un token JWT para un nombre de usuario dado
     public String generateToken(String username) {
         return Jwts.builder()
                 .setSubject(username)
@@ -23,6 +24,7 @@ public class JWTService {
                 .compact();
     }
 
+    // Extrae el nombre de usuario de un token JWT
     public String extractUsername(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(key)
@@ -32,6 +34,7 @@ public class JWTService {
                 .getSubject();
     }
 
+    // Valida un token JWT comparando el nombre de usuario extraído con el proporcionado
     public boolean validateToken(String token, String username) {
         String extractedUsername = extractUsername(token);
         return extractedUsername.equals(username);

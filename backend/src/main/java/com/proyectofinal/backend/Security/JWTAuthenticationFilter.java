@@ -33,6 +33,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain)
             throws ServletException, IOException {
 
+        // Obtener el encabezado de autorización del request
         String header = request.getHeader("Authorization");
         String username = null;
         String jwt = null;
@@ -47,9 +48,11 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 return;
             }
 
+            // Extraer el nombre de usuario del token JWT
             username = jwtService.extractUsername(jwt);
         }
 
+        // Validar el token y establecer la autenticación en el contexto de seguridad
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
 

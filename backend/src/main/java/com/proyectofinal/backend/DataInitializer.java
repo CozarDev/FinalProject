@@ -14,6 +14,7 @@ public class DataInitializer {
 
     @Bean
     public CommandLineRunner initData(UserRepository userRepository, EmployeeRepository employeeRepository, PasswordEncoder passwordEncoder) {
+        // Inicializa los datos predeterminados en la base de datos
         return args -> {
             if (!userRepository.findByUsername("admin").isPresent()) {
                 User admin = new User();

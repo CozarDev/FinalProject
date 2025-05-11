@@ -18,16 +18,19 @@ public class ShiftController {
         this.shiftRepository = shiftRepository;
     }
 
+    // Devuelve una lista de todos los turnos
     @GetMapping
     public List<Shift> getAllShifts() {
         return shiftRepository.findAll();
     }
 
+    // Crea un nuevo turno y lo guarda en la base de datos
     @PostMapping
     public Shift createShift(@RequestBody Shift shift) {
         return shiftRepository.save(shift);
     }
 
+    // Actualiza un turno existente basado en su ID
     @PutMapping("/{id}")
     public ResponseEntity<Shift> updateShift(@PathVariable String id, @RequestBody Shift shiftDetails) {
         Optional<Shift> shiftOpt = shiftRepository.findById(id);
@@ -42,6 +45,7 @@ public class ShiftController {
         }
     }
 
+    // Elimina un turno basado en su ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteShift(@PathVariable String id) {
         if (shiftRepository.existsById(id)) {

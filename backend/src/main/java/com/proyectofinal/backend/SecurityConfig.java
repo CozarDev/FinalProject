@@ -19,25 +19,28 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        // Configura la cadena de filtros de seguridad
         http.csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll()
-                .anyRequest().authenticated()
+                .requestMatchers("/api/auth/**").permitAll() // Permite el acceso sin autenticación a las rutas de autenticación
+                .anyRequest().authenticated() // Requiere autenticación para cualquier otra solicitud
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Configura la política de sesión como sin estado
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // Añade el filtro de autenticación JWT antes del filtro de autenticación de usuario y contraseña
 
         return http.build();
     }
 
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
+        // Proporciona una instancia del filtro de autenticación JWT
         return new JWTAuthenticationFilter();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
+        // Proporciona un codificador de contraseñas usando BCrypt
         return new BCryptPasswordEncoder();
     }
 }

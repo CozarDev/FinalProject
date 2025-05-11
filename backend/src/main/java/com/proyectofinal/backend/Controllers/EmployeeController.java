@@ -26,11 +26,13 @@ public class EmployeeController {
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Devuelve una lista de todos los empleados
     @GetMapping
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
     }
 
+    // Crea un nuevo empleado y un usuario asociado, luego guarda ambos en la base de datos
     @PostMapping
     public Employee createEmployee(@RequestBody Employee employee) {
         // Generar nombre de usuario basado en el nombre y apellido
@@ -50,6 +52,7 @@ public class EmployeeController {
         return employeeRepository.save(employee);
     }
 
+    // Actualiza un empleado existente basado en su ID
     @PutMapping("/{id}")
     public ResponseEntity<Employee> updateEmployee(@PathVariable String id, @RequestBody Employee employeeDetails) {
         Optional<Employee> employeeOpt = employeeRepository.findById(id);
@@ -64,6 +67,7 @@ public class EmployeeController {
         }
     }
 
+    // Elimina un empleado basado en su ID
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteEmployee(@PathVariable String id) {
         if (employeeRepository.existsById(id)) {
