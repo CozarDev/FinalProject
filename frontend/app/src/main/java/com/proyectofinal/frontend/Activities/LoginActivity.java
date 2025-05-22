@@ -8,16 +8,11 @@ import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
 
 import com.google.android.material.textfield.TextInputEditText;
 import com.proyectofinal.frontend.Api.ApiClient;
 import com.proyectofinal.frontend.Auth.AuthRequest;
-import com.proyectofinal.frontend.Auth.AuthResponse;
 import com.proyectofinal.frontend.R;
 
 import java.io.IOException;

@@ -14,10 +14,15 @@ import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ApiClient {
-    private static final String BASE_URL = "http://10.0.2.2:8080/"; // Cambiar por la URL de tu API
+    public static final String BASE_URL = "http://10.0.2.2:8080/"; // Cambiar por la URL de tu API
     private static ApiClient instance;
     private ApiService apiService;
+    private UserApiService userApiService;
+    private DepartmentApiService departmentApiService;
+    private EmployeeApiService employeeApiService;
     private Context context;
+    private OkHttpClient okHttpClient;
+    private Retrofit retrofit;
 
     private ApiClient(Context context) {
         this.context = context;
@@ -47,16 +52,19 @@ public class ApiClient {
             return chain.proceed(requestBuilder.build());
         });
 
+        // Guardar el cliente HTTP para usarlo en otras partes
+        okHttpClient = httpClient.build();
+
         // Configurar Gson
         Gson gson = new GsonBuilder()
                 .setLenient()
                 .create();
 
-        Retrofit retrofit = new Retrofit.Builder()
+        retrofit = new Retrofit.Builder()
                 .baseUrl(BASE_URL)
                 .addConverterFactory(ScalarsConverterFactory.create()) // Para respuestas String
                 .addConverterFactory(GsonConverterFactory.create(gson)) // Para respuestas JSON
-                .client(httpClient.build())
+                .client(okHttpClient)
                 .build();
 
         apiService = retrofit.create(ApiService.class);
@@ -71,5 +79,31 @@ public class ApiClient {
 
     public ApiService getApiService() {
         return apiService;
+    }
+    
+    public UserApiService getUserApiService() {
+        if (userApiService == null) {
+            userApiService = retrofit.create(UserApiService.class);
+        }
+        return userApiService;
+    }
+    
+    public DepartmentApiService getDepartmentApiService() {
+        if (departmentApiService == null) {
+            departmentApiService = retrofit.create(DepartmentApiService.class);
+        }
+        return departmentApiService;
+    }
+    
+    public EmployeeApiService getEmployeeApiService() {
+        if (employeeApiService == null) {
+            employeeApiService = retrofit.create(EmployeeApiService.class);
+        }
+        return employeeApiService;
+    }
+
+    // Método para obtener el OkHttpClient configurado
+    public OkHttpClient getOkHttpClient() {
+        return okHttpClient;
     }
 }
