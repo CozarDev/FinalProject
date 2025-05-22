@@ -37,4 +37,8 @@ public interface DepartmentApiService {
     Call<Map<String, Object>> assignManager(
         @Path("departmentId") String departmentId, 
         @Body Map<String, String> request);
+        
+    // Obtener el departamento por ID del jefe
+    @GET("api/departments/manager/{managerId}")
+    Call<List<String>> getDepartmentByManagerId(@Path("managerId") String managerId);
 } 

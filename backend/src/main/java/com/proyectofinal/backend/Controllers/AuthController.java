@@ -3,6 +3,7 @@ package com.proyectofinal.backend.Controllers;
 import com.proyectofinal.backend.Models.User;
 import com.proyectofinal.backend.Repositories.UserRepository;
 import com.proyectofinal.backend.Requests.AuthRequest;
+import com.proyectofinal.backend.Requests.AuthResponse;
 import com.proyectofinal.backend.Services.JWTService;
 
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,7 @@ public class AuthController {
 
     // Maneja el proceso de inicio de sesión y genera un token JWT si las credenciales son correctas
     @PostMapping("/login")
-    public ResponseEntity<String> login(@RequestBody AuthRequest request) {
+    public ResponseEntity<?> login(@RequestBody AuthRequest request) {
         Optional<User> userOpt = userRepository.findByUsername(request.getUsername());
 
         if (userOpt.isEmpty()) {
@@ -44,8 +45,12 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Credenciales inválidas");
         }
 
-        String token = jwtService.generateToken(user.getUsername());
-        return ResponseEntity.ok(token);
+        String token = jwtService.generateToken(user.getUsername(), user.getRole(), user.getId());
+        
+        // Crear objeto de respuesta con token y datos del usuario
+        AuthResponse authResponse = new AuthResponse(token, user.getRole(), user.getId(), user.getUsername());
+        
+        return ResponseEntity.ok(authResponse);
     }
 
     // Maneja el proceso de cierre de sesión y revoca el token JWT

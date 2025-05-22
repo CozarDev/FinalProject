@@ -10,6 +10,12 @@
         android:id="@+id/manageEmployees"
         android:title="Gestionar Empleados" />
     <item
+        android:id="@+id/manageShifts"
+        android:title="Gestionar Turnos" />
+    <item
+        android:id="@+id/manageShiftAssignments"
+        android:title="Asignar Turnos" />
+    <item
         android:id="@+id/logout"
         android:title="Cerrar sesión" />
 </menu>

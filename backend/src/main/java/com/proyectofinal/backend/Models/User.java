@@ -4,9 +4,12 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
+import java.util.ArrayList;
 
 @Document(collection = "users")
 public class User implements UserDetails {
@@ -67,7 +70,17 @@ public class User implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Collections.emptyList(); // sin roles por ahora
+        if (role == null || role.isEmpty()) {
+            return Collections.emptyList();
+        }
+        
+        List<GrantedAuthority> authorities = new ArrayList<>();
+        // Agregar el rol con el prefijo ROLE_ que requiere Spring Security
+        authorities.add(new SimpleGrantedAuthority("ROLE_" + role));
+        // También agregar el rol sin prefijo para mantener compatibilidad
+        authorities.add(new SimpleGrantedAuthority(role));
+        
+        return authorities;
     }
 
     @Override

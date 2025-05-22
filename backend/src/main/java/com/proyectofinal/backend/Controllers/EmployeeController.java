@@ -35,8 +35,36 @@ public class EmployeeController {
 
     // Devuelve una lista de todos los empleados
     @GetMapping
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
+    public List<Employee> getAllEmployees(@RequestParam(required = false) String departmentId) {
+        // Si se proporciona un departmentId, filtrar por ese departamento
+        if (departmentId != null && !departmentId.isEmpty()) {
+            // Verificar permisos para acceder a empleados del departamento
+            if (!userService.isCurrentUserAdmin() && 
+                !userService.isCurrentUserManagerOfDepartment(departmentId)) {
+                // Si no es admin ni jefe de ese departamento, devolver lista vacía
+                return List.of();
+            }
+            
+            return employeeRepository.findByDepartmentId(departmentId);
+        }
+        
+        // Si no hay filtro o el usuario es admin, devolver todos
+        if (userService.isCurrentUserAdmin()) {
+            return employeeRepository.findAll();
+        } else if (userService.isCurrentUserDepartmentHead()) {
+            // Jefe de departamento: obtener su empleado y su departamento
+            String currentEmployeeId = userService.getCurrentEmployeeId();
+            Optional<Employee> employeeOpt = employeeRepository.findById(currentEmployeeId);
+            if (employeeOpt.isPresent()) {
+                String deptId = employeeOpt.get().getDepartmentId();
+                if (deptId != null) {
+                    return employeeRepository.findByDepartmentId(deptId);
+                }
+            }
+        }
+        
+        // Para otros usuarios, devolver lista vacía (o podría ser solo su propio registro)
+        return List.of();
     }
     
     // Devuelve información del usuario asociado a un empleado

@@ -6,6 +6,7 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -28,6 +29,8 @@ import com.proyectofinal.frontend.Api.ApiClient;
 import com.proyectofinal.frontend.Fragments.ManageDepartmentsFragment;
 import com.proyectofinal.frontend.Fragments.ManageEmployeesFragment;
 import com.proyectofinal.frontend.Fragments.UserProfileFragment;
+import com.proyectofinal.frontend.Fragments.ManageShiftTypesFragment;
+import com.proyectofinal.frontend.Fragments.ManageShiftAssignmentsFragment;
 import com.proyectofinal.frontend.Models.Department;
 import com.proyectofinal.frontend.R;
 import androidx.appcompat.widget.ActionMenuView;
@@ -52,7 +55,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String PREF_TOOLBAR_GUIDE_SHOWN = "toolbar_guide_shown";
     private static final String PREF_DEPARTMENT_MENU_GUIDE_SHOWN = "department_menu_guide_shown";
     private boolean shouldShowGuides = false;
-    private boolean isAdmin = false; // Aquí deberías agregar lógica para detectar si es admin
+    private boolean isAdmin = false; 
+    private boolean isDepartmentHead = false;
+    private String currentRole = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
         // Inicializar API client
         apiClient = ApiClient.getInstance(this);
         
-        // Comprobar si el usuario es administrador
-        checkIfUserIsAdmin();
+        // Comprobar el rol del usuario
+        checkUserRole();
         
         // Verificar si hay departamentos (solo para administradores)
         if (isAdmin) {
@@ -78,17 +83,23 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
-    private void checkIfUserIsAdmin() {
+    private void checkUserRole() {
         // Verificar el rol del usuario basado en SharedPreferences
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        String role = prefs.getString("USER_ROLE", "ADMIN"); // Asumir ADMIN por defecto
-        isAdmin = "ADMIN".equals(role);
+        currentRole = prefs.getString("USER_ROLE", "EMPLOYEE"); // Asumir EMPLOYEE por defecto
+        
+        // Configurar flags de rol
+        isAdmin = "ADMIN".equals(currentRole);
+        isDepartmentHead = "DEPARTMENT_HEAD".equals(currentRole);
+        
+        Log.d("MainActivity", "Rol del usuario: " + currentRole);
+        Log.d("MainActivity", "isAdmin: " + isAdmin + ", isDepartmentHead: " + isDepartmentHead);
         
         // Solo verificar si hay token, pero no mostrar Toast
         String token = prefs.getString("JWT_TOKEN", "");
         if (token.isEmpty()) {
             // Error silencioso, solo loguear
-            System.out.println("Advertencia: No hay token JWT disponible");
+            Log.e("MainActivity", "Advertencia: No hay token JWT disponible");
         }
     }
     
@@ -140,6 +151,32 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.acciones_toolbar, menu);
+        
+        // Configurar visibilidad según rol
+        MenuItem manageDepartments = menu.findItem(R.id.manageDepartments);
+        MenuItem manageEmployees = menu.findItem(R.id.manageEmployees);
+        MenuItem manageShifts = menu.findItem(R.id.manageShifts);
+        MenuItem manageShiftAssignments = menu.findItem(R.id.manageShiftAssignments);
+        
+        // Configurar visibilidad para ADMIN
+        if (manageDepartments != null) {
+            manageDepartments.setVisible(isAdmin);
+        }
+        
+        // Configurar visibilidad para ADMIN y DEPARTMENT_HEAD
+        if (manageEmployees != null) {
+            manageEmployees.setVisible(isAdmin || isDepartmentHead);
+        }
+        
+        // Configurar visibilidad para ADMIN
+        if (manageShifts != null) {
+            manageShifts.setVisible(isAdmin);
+        }
+        
+        // Configurar visibilidad para ADMIN y DEPARTMENT_HEAD
+        if (manageShiftAssignments != null) {
+            manageShiftAssignments.setVisible(isAdmin || isDepartmentHead);
+        }
         
         // Si debemos mostrar guías y la guía del toolbar aún no se ha mostrado,
         // iniciarla con un retraso.
@@ -315,14 +352,20 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
         
-        if (id == R.id.manageDepartments) {
+        if (id == R.id.userProfile) {
+            showUserProfileFragment();
+            return true;
+        } else if (id == R.id.manageDepartments) {
             showManageDepartmentsFragment();
             return true;
         } else if (id == R.id.manageEmployees) {
             showManageEmployeesFragment();
             return true;
-        } else if (id == R.id.userProfile) {
-            showUserProfileFragment();
+        } else if (id == R.id.manageShifts) {
+            showManageShiftsFragment();
+            return true;
+        } else if (id == R.id.manageShiftAssignments) {
+            showManageShiftAssignmentsFragment();
             return true;
         } else if (id == R.id.logout) {
             logout();
@@ -406,6 +449,66 @@ public class MainActivity extends AppCompatActivity {
         transaction.replace(R.id.fragmentContainer, userProfileFragment);
         transaction.addToBackStack(null);
         transaction.commit();
+    }
+
+    private void showManageShiftsFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        
+        // Primero, mostrar el contenedor de fragmentos
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.VISIBLE);
+        }
+        
+        // Ocultar el ViewPager si está visible
+        if (viewPager2 != null) {
+            viewPager2.setVisibility(View.GONE);
+        }
+        
+        // Ocultar BottomNavigationView si está visible
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        
+        // Crear y mostrar el fragmento
+        ManageShiftTypesFragment manageShiftTypesFragment = new ManageShiftTypesFragment();
+        transaction.replace(R.id.fragmentContainer, manageShiftTypesFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        
+        // Actualizar título del toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Gestionar Turnos");
+        }
+    }
+
+    private void showManageShiftAssignmentsFragment() {
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
+        
+        // Primero, mostrar el contenedor de fragmentos
+        if (fragmentContainer != null) {
+            fragmentContainer.setVisibility(View.VISIBLE);
+        }
+        
+        // Ocultar el ViewPager si está visible
+        if (viewPager2 != null) {
+            viewPager2.setVisibility(View.GONE);
+        }
+        
+        // Ocultar BottomNavigationView si está visible
+        if (bottomNavigationView != null) {
+            bottomNavigationView.setVisibility(View.GONE);
+        }
+        
+        // Crear y mostrar el fragmento
+        ManageShiftAssignmentsFragment manageShiftAssignmentsFragment = new ManageShiftAssignmentsFragment();
+        transaction.replace(R.id.fragmentContainer, manageShiftAssignmentsFragment);
+        transaction.addToBackStack(null);
+        transaction.commit();
+        
+        // Actualizar título del toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Asignar Turnos");
+        }
     }
 
     @Override

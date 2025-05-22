@@ -14,6 +14,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/departments")
@@ -174,5 +176,21 @@ public class DepartmentController {
         List<Employee> employees = employeeRepository.findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(
             query, query);
         return ResponseEntity.ok(employees);
+    }
+    
+    // Obtener el departamento por ID del manager (jefe)
+    @GetMapping("/manager/{managerId}")
+    public ResponseEntity<List<String>> getDepartmentByManagerId(@PathVariable String managerId) {
+        List<Department> departments = departmentRepository.findByManagerId(managerId);
+        if (departments.isEmpty()) {
+            return ResponseEntity.ok(new ArrayList<>());
+        }
+        
+        // Convertir la lista de departamentos en una lista de IDs
+        List<String> departmentIds = departments.stream()
+                .map(Department::getId)
+                .collect(Collectors.toList());
+                
+        return ResponseEntity.ok(departmentIds);
     }
 } 

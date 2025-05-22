@@ -1,4 +1,4 @@
-package com.proyectofinal.frontend.Auth;
+package com.proyectofinal.backend.Requests;
 
 public class AuthResponse {
     private String token;
@@ -6,11 +6,11 @@ public class AuthResponse {
     private String userId;
     private String username;
 
-    // Constructor vacío necesario para deserialización de Gson
+    // Constructor vacío para serialización
     public AuthResponse() {
     }
 
-    // Constructor con todos los parámetros
+    // Constructor con todos los campos
     public AuthResponse(String token, String role, String userId, String username) {
         this.token = token;
         this.role = role;
@@ -19,7 +19,13 @@ public class AuthResponse {
     }
 
     // Getters y setters
+    public String getToken() {
+        return token;
+    }
 
+    public void setToken(String token) {
+        this.token = token;
+    }
 
     public String getRole() {
         return role;
@@ -27,14 +33,6 @@ public class AuthResponse {
 
     public void setRole(String role) {
         this.role = role;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public String getUserId() {
@@ -52,4 +50,4 @@ public class AuthResponse {
     public void setUsername(String username) {
         this.username = username;
     }
-}
+} 

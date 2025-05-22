@@ -32,8 +32,6 @@ android {
 }
 
 dependencies {
-
-
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
     implementation(libs.converter.scalars)
@@ -44,11 +42,15 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     
+    // JWT para decodificar tokens
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
+    implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
+    
     // TapTargetView para guías visuales
     implementation(libs.tap.target.view)
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
 }

@@ -3,6 +3,7 @@ package com.proyectofinal.frontend.Activities;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ProgressBar;
@@ -13,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.google.android.material.textfield.TextInputEditText;
 import com.proyectofinal.frontend.Api.ApiClient;
 import com.proyectofinal.frontend.Auth.AuthRequest;
+import com.proyectofinal.frontend.Auth.AuthResponse;
 import com.proyectofinal.frontend.R;
+import com.proyectofinal.frontend.Utils.JwtUtils;
 
 import java.io.IOException;
 
@@ -23,6 +26,7 @@ import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
+    private static final String TAG = "LoginActivity";
     private TextInputEditText etUsername, etPassword;
     private Button btnLogin;
     private ProgressBar progressBar;
@@ -82,16 +86,30 @@ public class LoginActivity extends AppCompatActivity {
 
         AuthRequest authRequest = new AuthRequest(username, password);
 
-        apiClient.getApiService().login(authRequest).enqueue(new Callback<String>() {
+        apiClient.getApiService().login(authRequest).enqueue(new Callback<AuthResponse>() {
             @Override
-            public void onResponse(Call<String> call, Response<String> response) {
+            public void onResponse(Call<AuthResponse> call, Response<AuthResponse> response) {
                 showLoading(false);
 
                 if (response.isSuccessful() && response.body() != null) {
-                    String token = response.body();
+                    AuthResponse authResponse = response.body();
+                    String token = authResponse.getToken();
+                    String role = authResponse.getRole();
+                    String userId = authResponse.getUserId();
+                    
+                    Log.d(TAG, "Token recibido: " + token);
+                    Log.d(TAG, "Rol recibido: " + role);
+                    Log.d(TAG, "User ID recibido: " + userId);
 
-                    // Guardar token
-                    saveUserSession(token);
+                    // Si el backend no nos proporciona el rol directamente en la respuesta,
+                    // lo extraemos del token
+                    if (role == null || role.isEmpty()) {
+                        role = JwtUtils.extractRole(token);
+                        Log.d(TAG, "Rol extraído del token: " + role);
+                    }
+
+                    // Guardar token y rol
+                    saveUserSession(token, role, userId, username);
 
                     // Navegar a MainActivity
                     navigateToMainActivity();
@@ -100,9 +118,11 @@ public class LoginActivity extends AppCompatActivity {
                     try {
                         String errorBody = response.errorBody() != null ?
                                 response.errorBody().string() : "Error desconocido";
+                        Log.e(TAG, "Error de autenticación: " + errorBody);
                         Toast.makeText(LoginActivity.this,
                                 "Error: " + errorBody, Toast.LENGTH_LONG).show();
                     } catch (IOException e) {
+                        Log.e(TAG, "Error al leer errorBody", e);
                         Toast.makeText(LoginActivity.this,
                                 "Error en la autenticación", Toast.LENGTH_SHORT).show();
                     }
@@ -110,22 +130,28 @@ public class LoginActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onFailure(Call<String> call, Throwable t) {
+            public void onFailure(Call<AuthResponse> call, Throwable t) {
                 showLoading(false);
+                Log.e(TAG, "Error de conexión", t);
                 Toast.makeText(LoginActivity.this,
                         "Error de conexión: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void saveUserSession(String token) {
+    private void saveUserSession(String token, String role, String userId, String username) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
 
         editor.putString("JWT_TOKEN", token);
+        editor.putString("USER_ROLE", role);
+        editor.putString("USER_ID", userId);
+        editor.putString("USERNAME", username);
         editor.putBoolean("IS_LOGGED_IN", true);
 
         editor.apply();
+        
+        Log.d(TAG, "Sesión guardada - Rol: " + role + ", User ID: " + userId);
     }
 
     private boolean isLoggedIn() {

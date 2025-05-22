@@ -14,4 +14,7 @@ public interface EmployeeRepository extends MongoRepository<Employee, String> {
     
     // Método para buscar empleados por nombre o apellido
     List<Employee> findByFirstNameContainingIgnoreCaseOrLastNameContainingIgnoreCase(String firstName, String lastName);
+    
+    // Método para buscar empleados por departamento
+    List<Employee> findByDepartmentId(String departmentId);
 } 
