@@ -33,9 +33,3 @@ options:
   machineType: 'E2_HIGHCPU_8'
   logging: CLOUD_LOGGING_ONLY
 
-# Timeout
-timeout: 1200s
-
-# Solo ejecutar si hay cambios en el backend
-includedFiles:
-  - 'backend/**' 
