@@ -106,9 +106,7 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authentication);
                 
-                // Añadir información de debug
-                logger.info("DEBUG JWT - Usuario autenticado: {}, Rol: {}", username, role);
-                logger.info("DEBUG JWT - Authorities: {}", authentication.getAuthorities());
+
             }
         }
         
