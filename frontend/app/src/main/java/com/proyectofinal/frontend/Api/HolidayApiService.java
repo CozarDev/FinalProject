@@ -28,6 +28,12 @@ public interface HolidayApiService {
             @Query("year") Integer year);
     
     /**
+     * Obtiene todas las excepciones de turno de un empleado (festivos, vacaciones, etc.)
+     */
+    @GET("api/holidays/exceptions/{employeeId}")
+    Call<List<ShiftException>> getShiftExceptionsByEmployee(@Path("employeeId") String employeeId);
+    
+    /**
      * Importa festivos nacionales para un año específico
      */
     @POST("api/holidays/import-national")

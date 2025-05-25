@@ -112,30 +112,46 @@ public class ShiftAssignmentController {
     public ResponseEntity<?> getShiftAssignmentsByEmployee(@PathVariable String employeeId) {
         logger.info("Solicitando asignaciones para el empleado ID: {}", employeeId);
         
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String currentUsername = auth.getName();
+        
+        boolean isAdmin = userService.isCurrentUserAdmin();
+        boolean isDepartmentHead = userService.isCurrentUserDepartmentHead();
+        
         // Verificar permisos
-        if (!userService.isCurrentUserAdmin()) {
-            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-            String currentUserId = auth.getName();
-            
-            // Si es empleado normal, solo puede ver sus propias asignaciones
-            if (!userService.isCurrentUserDepartmentHead() && !employeeId.equals(currentUserId)) {
-                logger.warn("Empleado intentando acceder a asignaciones de otro empleado");
-                return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                        .body("No tienes permisos para ver estas asignaciones");
-            }
-            
-            // Si es jefe de departamento, verificar que el empleado esté en su departamento
-            if (userService.isCurrentUserDepartmentHead()) {
-                Optional<Employee> employee = employeeRepository.findById(employeeId);
+        if (!isAdmin) {
+            if (!isDepartmentHead) {
+                // Si es empleado normal, verificar si solicita sus propias asignaciones
+                try {
+                    Optional<Employee> currentUserEmployee = employeeRepository.findByUserId(currentUsername);
+                    
+                    if (currentUserEmployee.isPresent()) {
+                        String currentUserEmployeeId = currentUserEmployee.get().getId();
+                        
+                        if (!employeeId.equals(currentUserEmployeeId)) {
+                            logger.warn("Empleado {} intentando acceder a asignaciones de otro empleado", currentUsername);
+                            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                                    .body("No tienes permisos para ver estas asignaciones");
+                        }
+                    }
+                    // Si no se encuentra por userId, se permite el acceso (empleado accediendo a sus propias asignaciones)
+                } catch (Exception e) {
+                    logger.error("Error verificando empleado actual: {}", e.getMessage());
+                    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                            .body("Error interno verificando permisos");
+                }
+            } else {
+                // Si es jefe de departamento, verificar que el empleado esté en su departamento
+                Optional<Employee> targetEmployee = employeeRepository.findById(employeeId);
                 
-                if (!employee.isPresent()) {
+                if (!targetEmployee.isPresent()) {
                     logger.warn("No se encuentra el empleado con ID: {}", employeeId);
                     return ResponseEntity.notFound().build();
                 }
                 
-                String departmentId = employee.get().getDepartmentId();
+                String targetDepartmentId = targetEmployee.get().getDepartmentId();
                 
-                if (!userService.isCurrentUserManagerOfDepartment(departmentId)) {
+                if (!userService.isCurrentUserManagerOfDepartment(targetDepartmentId)) {
                     logger.warn("Jefe de departamento intentando acceder a asignaciones de otro departamento");
                     return ResponseEntity.status(HttpStatus.FORBIDDEN)
                             .body("No tienes permisos para ver estas asignaciones");

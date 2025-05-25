@@ -19,6 +19,9 @@ public interface DepartmentApiService {
     @GET("api/departments") // Incluir el prefijo api/ en la ruta
     Call<List<Department>> getAllDepartments();
 
+    @GET("api/departments/{id}")
+    Call<Department> getDepartmentById(@Path("id") String id);
+
     @POST("api/departments")
     Call<Department> createDepartment(@Body Department department);
 

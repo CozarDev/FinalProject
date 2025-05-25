@@ -25,24 +25,26 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // Configura la cadena de filtros de seguridad
         http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/**").permitAll() // Permite el acceso sin autenticación a las rutas de autenticación
+                .requestMatchers("/api/auth/**").permitAll()
                 .requestMatchers("/api/departments").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
                 .requestMatchers("/api/departments/manager/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
                 .requestMatchers("/api/departments/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
+                .requestMatchers("/api/employees/me").authenticated()
                 .requestMatchers("/api/employees/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
                 .requestMatchers("/api/shifts/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
-                .requestMatchers("/api/shifttypes/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
-                .requestMatchers("/api/shiftassignments/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
-                .anyRequest().authenticated() // Requiere autenticación para cualquier otra solicitud
+                .requestMatchers("/api/shifttypes/**").authenticated() // Necesario para calcular turnos
+                .requestMatchers("/api/shiftassignments/**").authenticated() // Controlador maneja permisos específicos
+                .requestMatchers("/api/holidays/**").authenticated() // Controlador maneja permisos específicos
+                .requestMatchers("/api/incidences/**").authenticated() // Controlador maneja permisos específicos
+                .anyRequest().authenticated()
             )
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)); // Configura la política de sesión como sin estado
+            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
-        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // Añade el filtro de autenticación JWT antes del filtro de autenticación de usuario y contraseña
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
@@ -50,9 +52,10 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("*")); // Permite todas las procedencias (para desarrollo)
+        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000", "http://10.0.2.2:8080"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("authorization", "content-type", "x-auth-token"));
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+        configuration.setAllowCredentials(true);
         configuration.setExposedHeaders(List.of("x-auth-token"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
@@ -61,13 +64,11 @@ public class SecurityConfig {
 
     @Bean
     public JWTAuthenticationFilter jwtAuthenticationFilter() {
-        // Proporciona una instancia del filtro de autenticación JWT
         return new JWTAuthenticationFilter();
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        // Proporciona un codificador de contraseñas usando BCrypt
         return new BCryptPasswordEncoder();
     }
 }

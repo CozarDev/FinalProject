@@ -15,13 +15,13 @@ import retrofit2.http.Query;
 public interface EmployeeApiService {
 
     @GET("api/employees")
-    Call<List<Employee>> getAllEmployees();
+    Call<List<Employee>> getAllEmployees(@Query("departmentId") String departmentId);
     
     @GET("api/employees")
-    Call<List<Employee>> getEmployeesByDepartment(@Query("departmentId") String departmentId);
-    
-    @GET("api/employees/{id}/user-info")
-    Call<Map<String, String>> getEmployeeUserInfo(@Path("id") String id);
+    Call<List<Employee>> getAllEmployees();
+
+    @GET("api/employees/me")
+    Call<Employee> getCurrentEmployeeInfo();
 
     @POST("api/employees")
     Call<Employee> createEmployee(@Body Employee employee);
@@ -31,4 +31,7 @@ public interface EmployeeApiService {
 
     @DELETE("api/employees/{id}")
     Call<Void> deleteEmployee(@Path("id") String id);
+
+    @GET("api/employees/{id}/user-info")
+    Call<Map<String, String>> getEmployeeUserInfo(@Path("id") String id);
 } 

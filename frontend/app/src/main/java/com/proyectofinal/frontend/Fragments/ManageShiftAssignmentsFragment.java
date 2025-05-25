@@ -209,7 +209,7 @@ public class ManageShiftAssignmentsFragment extends Fragment {
         showLoading(true);
         
         // Cargar empleados del departamento del jefe
-        apiClient.getEmployeeApiService().getEmployeesByDepartment(departmentId).enqueue(new Callback<List<Employee>>() {
+        apiClient.getEmployeeApiService().getAllEmployees(departmentId).enqueue(new Callback<List<Employee>>() {
             @Override
             public void onResponse(Call<List<Employee>> call, Response<List<Employee>> response) {
                 showLoading(false);
@@ -506,7 +506,7 @@ public class ManageShiftAssignmentsFragment extends Fragment {
                 @Override
                 public void onEditClick(ShiftAssignment shiftAssignment, int position) {
                     // Implementar edición de asignación
-                    Toast.makeText(getContext(), "Editar asignación no implementado", Toast.LENGTH_SHORT).show();
+                    showEditShiftAssignmentDialog(shiftAssignment, position);
                 }
                 
                 @Override
@@ -870,6 +870,285 @@ public class ManageShiftAssignmentsFragment extends Fragment {
         } catch (Exception e) {
             showLoading(false);
             Log.e(TAG, "Error al preparar la asignación: ", e);
+            Toast.makeText(getContext(), "Error al preparar los datos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
+    }
+    
+    private void showEditShiftAssignmentDialog(ShiftAssignment currentAssignment, int position) {
+        // Inflar el layout del diálogo
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_add_shift_assignment, null);
+        
+        // Crear el AlertDialog
+        AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
+        builder.setTitle("Editar Asignación de Turno");
+        builder.setView(dialogView);
+        AlertDialog dialog = builder.create();
+        
+        // Obtener referencias a las vistas del diálogo
+        Spinner spinnerEmployee = dialogView.findViewById(R.id.spinnerEmployee);
+        Spinner spinnerShiftType = dialogView.findViewById(R.id.spinnerShiftType);
+        EditText etStartDate = dialogView.findViewById(R.id.etStartDate);
+        EditText etEndDate = dialogView.findViewById(R.id.etEndDate);
+        Button btnPickStartDate = dialogView.findViewById(R.id.btnPickStartDate);
+        Button btnPickEndDate = dialogView.findViewById(R.id.btnPickEndDate);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnSave = dialogView.findViewById(R.id.btnSave);
+        
+        // Cambiar el texto del botón guardar
+        btnSave.setText("Actualizar");
+        
+        // Configurar adaptadores para los spinners
+        List<Employee> employees = new ArrayList<>();
+        if (isAdmin) {
+            // Si es admin, obtener todos los empleados
+            apiClient.getEmployeeApiService().getAllEmployees().enqueue(new Callback<List<Employee>>() {
+                @Override
+                public void onResponse(Call<List<Employee>> call, Response<List<Employee>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        employees.addAll(response.body());
+                        setupEmployeeSpinner(spinnerEmployee, employees);
+                        
+                        // Preseleccionar el empleado actual
+                        for (int i = 0; i < employees.size(); i++) {
+                            if (employees.get(i).getId().equals(currentAssignment.getEmployeeId())) {
+                                spinnerEmployee.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                @Override
+                public void onFailure(Call<List<Employee>> call, Throwable t) {
+                    Toast.makeText(getContext(), "Error al cargar empleados", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else if (isDepartmentHead) {
+            // Si es jefe de departamento, usar los empleados ya cargados
+            if (departmentEmployees.isEmpty()) {
+                loadEmployeesForDepartment();
+            }
+            setupEmployeeSpinner(spinnerEmployee, departmentEmployees);
+            
+            // Preseleccionar el empleado actual
+            for (int i = 0; i < departmentEmployees.size(); i++) {
+                if (departmentEmployees.get(i).getId().equals(currentAssignment.getEmployeeId())) {
+                    spinnerEmployee.setSelection(i);
+                    break;
+                }
+            }
+        }
+        
+        // Tipos de turno
+        if (availableShiftTypes.isEmpty()) {
+            apiClient.getShiftTypeApiService().getAllShiftTypes().enqueue(new Callback<List<ShiftType>>() {
+                @Override
+                public void onResponse(Call<List<ShiftType>> call, Response<List<ShiftType>> response) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        availableShiftTypes = response.body();
+                        setupShiftTypeSpinner(spinnerShiftType, availableShiftTypes);
+                        
+                        // Preseleccionar el tipo de turno actual
+                        for (int i = 0; i < availableShiftTypes.size(); i++) {
+                            if (availableShiftTypes.get(i).getId().equals(currentAssignment.getShiftTypeId())) {
+                                spinnerShiftType.setSelection(i);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                @Override
+                public void onFailure(Call<List<ShiftType>> call, Throwable t) {
+                    Toast.makeText(getContext(), "Error al cargar tipos de turno", Toast.LENGTH_SHORT).show();
+                }
+            });
+        } else {
+            setupShiftTypeSpinner(spinnerShiftType, availableShiftTypes);
+            
+            // Preseleccionar el tipo de turno actual
+            for (int i = 0; i < availableShiftTypes.size(); i++) {
+                if (availableShiftTypes.get(i).getId().equals(currentAssignment.getShiftTypeId())) {
+                    spinnerShiftType.setSelection(i);
+                    break;
+                }
+            }
+        }
+        
+        // Precargar las fechas actuales
+        SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        if (currentAssignment.getStartDate() != null) {
+            etStartDate.setText(displayFormat.format(currentAssignment.getStartDate()));
+        }
+        if (currentAssignment.getEndDate() != null) {
+            etEndDate.setText(displayFormat.format(currentAssignment.getEndDate()));
+        }
+        
+        // Configurar pickers de fecha
+        Calendar calendar = Calendar.getInstance();
+        
+        btnPickStartDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    getContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(year, month, dayOfMonth);
+                        etStartDate.setText(displayFormat.format(calendar.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            datePickerDialog.show();
+        });
+        
+        btnPickEndDate.setOnClickListener(v -> {
+            DatePickerDialog datePickerDialog = new DatePickerDialog(
+                    getContext(),
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(year, month, dayOfMonth);
+                        etEndDate.setText(displayFormat.format(calendar.getTime()));
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            );
+            datePickerDialog.show();
+        });
+        
+        // Botón cancelar
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
+        
+        // Botón actualizar
+        btnSave.setOnClickListener(v -> {
+            // Validar los campos
+            if (spinnerEmployee.getSelectedItemPosition() == AdapterView.INVALID_POSITION) {
+                Toast.makeText(getContext(), "Selecciona un empleado", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            if (spinnerShiftType.getSelectedItemPosition() == AdapterView.INVALID_POSITION) {
+                Toast.makeText(getContext(), "Selecciona un tipo de turno", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            String startDate = etStartDate.getText().toString();
+            if (startDate.isEmpty()) {
+                Toast.makeText(getContext(), "Selecciona la fecha de inicio", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            String endDate = etEndDate.getText().toString();
+            if (endDate.isEmpty()) {
+                Toast.makeText(getContext(), "Selecciona la fecha de fin", Toast.LENGTH_SHORT).show();
+                return;
+            }
+            
+            // Crear objeto ShiftAssignment actualizado
+            Employee selectedEmployee = (Employee) spinnerEmployee.getSelectedItem();
+            ShiftType selectedShiftType = (ShiftType) spinnerShiftType.getSelectedItem();
+            
+            // Convertir las cadenas de texto a objetos Date
+            try {
+                Date startDateObj = displayFormat.parse(startDate);
+                Date endDateObj = displayFormat.parse(endDate);
+                
+                // Crear una versión actualizada del modelo ShiftAssignment
+                ShiftAssignment updatedAssignment = new ShiftAssignment();
+                updatedAssignment.setId(currentAssignment.getId()); // Mantener el ID original
+                updatedAssignment.setEmployeeId(selectedEmployee.getId());
+                updatedAssignment.setShiftTypeId(selectedShiftType.getId());
+                updatedAssignment.setStartDate(startDateObj);
+                updatedAssignment.setEndDate(endDateObj);
+                
+                // Actualizar la asignación
+                updateShiftAssignment(updatedAssignment, dialog);
+            } catch (ParseException e) {
+                Toast.makeText(getContext(), "Error en el formato de fecha", Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Error al parsear fechas: " + e.getMessage());
+            }
+        });
+        
+        dialog.show();
+    }
+    
+    private void updateShiftAssignment(ShiftAssignment assignment, AlertDialog dialog) {
+        showLoading(true);
+        
+        try {
+            // Crear un mapa para enviar los datos con el formato correcto
+            SimpleDateFormat isoDateFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
+            Map<String, Object> assignmentMap = new HashMap<>();
+            assignmentMap.put("employeeId", assignment.getEmployeeId());
+            assignmentMap.put("shiftTypeId", assignment.getShiftTypeId());
+            assignmentMap.put("startDate", isoDateFormat.format(assignment.getStartDate()));
+            assignmentMap.put("endDate", isoDateFormat.format(assignment.getEndDate()));
+            
+            Log.d(TAG, "Actualizando asignación de turno con ID: " + assignment.getId());
+            Log.d(TAG, "  - EmployeeId: " + assignmentMap.get("employeeId"));
+            Log.d(TAG, "  - ShiftTypeId: " + assignmentMap.get("shiftTypeId"));
+            Log.d(TAG, "  - StartDate: " + assignmentMap.get("startDate"));
+            Log.d(TAG, "  - EndDate: " + assignmentMap.get("endDate"));
+            
+            // Crear un objeto ShiftAssignment temporal para la actualización
+            ShiftAssignment tempAssignment = new ShiftAssignment();
+            tempAssignment.setEmployeeId(assignment.getEmployeeId());
+            tempAssignment.setShiftTypeId(assignment.getShiftTypeId());
+            tempAssignment.setStartDate(assignment.getStartDate());
+            tempAssignment.setEndDate(assignment.getEndDate());
+            
+            apiClient.getShiftAssignmentApiService().updateShiftAssignment(assignment.getId(), tempAssignment).enqueue(new Callback<ShiftAssignment>() {
+                @Override
+                public void onResponse(Call<ShiftAssignment> call, Response<ShiftAssignment> response) {
+                    showLoading(false);
+                    
+                    Log.d(TAG, "Respuesta del servidor - Código: " + response.code());
+                    if (!response.isSuccessful()) {
+                        try {
+                            String errorBody = response.errorBody() != null ? response.errorBody().string() : "No hay cuerpo de error";
+                            Log.e(TAG, "Error en la respuesta: " + errorBody);
+                            if (response.code() == 403) {
+                                Toast.makeText(getContext(), "No tienes permisos para actualizar esta asignación", Toast.LENGTH_LONG).show();
+                            } else if (response.code() == 400) {
+                                Toast.makeText(getContext(), "Datos incorrectos: " + errorBody, Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(getContext(), "Error al actualizar la asignación: " + response.code(), Toast.LENGTH_LONG).show();
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "No se pudo leer el error: " + e.getMessage());
+                            Toast.makeText(getContext(), "Error al actualizar la asignación", Toast.LENGTH_SHORT).show();
+                        }
+                        return;
+                    }
+                    
+                    if (response.body() != null) {
+                        Log.d(TAG, "Asignación actualizada con ID: " + response.body().getId());
+                        Toast.makeText(getContext(), "Asignación actualizada con éxito", Toast.LENGTH_SHORT).show();
+                        dialog.dismiss();
+                        
+                        // Recargar las asignaciones
+                        if (isAdmin) {
+                            loadAllShiftAssignments();
+                        } else if (isDepartmentHead) {
+                            loadShiftAssignments();
+                        } else {
+                            loadEmployeeShiftAssignments();
+                        }
+                    } else {
+                        Log.e(TAG, "Respuesta exitosa pero cuerpo vacío");
+                        Toast.makeText(getContext(), "Respuesta vacía del servidor", Toast.LENGTH_SHORT).show();
+                    }
+                }
+                
+                @Override
+                public void onFailure(Call<ShiftAssignment> call, Throwable t) {
+                    showLoading(false);
+                    Log.e(TAG, "Error de conexión: ", t);
+                    Toast.makeText(getContext(), "Error de conexión: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                }
+            });
+        } catch (Exception e) {
+            showLoading(false);
+            Log.e(TAG, "Error al preparar la actualización: ", e);
             Toast.makeText(getContext(), "Error al preparar los datos: " + e.getMessage(), Toast.LENGTH_LONG).show();
         }
     }

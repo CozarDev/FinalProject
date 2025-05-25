@@ -2,17 +2,24 @@ package com.proyectofinal.frontend.Api;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
+import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
+
+import java.io.IOException;
 
 public class ApiClient {
     private static final String TAG = "ApiClient";
@@ -25,12 +32,20 @@ public class ApiClient {
     private ShiftTypeApiService shiftTypeApiService;
     private ShiftAssignmentApiService shiftAssignmentApiService;
     private HolidayApiService holidayApiService;
+    private IncidenceRetrofitService incidenceRetrofitService;
     private Context context;
     private OkHttpClient okHttpClient;
     private Retrofit retrofit;
+    private Handler mainHandler;
 
-    private ApiClient(Context context) {
+    // Constructor público para crear instancias simples
+    public ApiClient(Context context) {
         this.context = context;
+        this.mainHandler = new Handler(Looper.getMainLooper());
+        initializeClient();
+    }
+
+    private void initializeClient() {
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
         // Logging para depuración
@@ -143,8 +158,98 @@ public class ApiClient {
         return holidayApiService;
     }
 
+    public IncidenceRetrofitService getIncidenceRetrofitService() {
+        if (incidenceRetrofitService == null) {
+            incidenceRetrofitService = retrofit.create(IncidenceRetrofitService.class);
+        }
+        return incidenceRetrofitService;
+    }
+
     // Método para obtener el OkHttpClient configurado
     public OkHttpClient getOkHttpClient() {
         return okHttpClient;
+    }
+
+    // **INTERFAZ PARA CALLBACKS SIMPLES**
+    public interface ApiCallback {
+        void onSuccess(String response);
+        void onError(String error);
+    }
+
+    // **MÉTODOS SIMPLES PARA COMPATIBILIDAD**
+    
+    public void get(String endpoint, ApiCallback callback) {
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .build();
+
+        okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    mainHandler.post(() -> callback.onSuccess(responseBody));
+                } else {
+                    String error = "Error: " + response.code() + " " + response.message();
+                    mainHandler.post(() -> callback.onError(error));
+                }
+            }
+        });
+    }
+
+    public void post(String endpoint, String jsonBody, ApiCallback callback) {
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .post(body)
+                .build();
+
+        okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    mainHandler.post(() -> callback.onSuccess(responseBody));
+                } else {
+                    String error = "Error: " + response.code() + " " + response.message();
+                    mainHandler.post(() -> callback.onError(error));
+                }
+            }
+        });
+    }
+
+    public void delete(String endpoint, ApiCallback callback) {
+        Request request = new Request.Builder()
+                .url(BASE_URL + endpoint)
+                .delete()
+                .build();
+
+        okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                mainHandler.post(() -> callback.onError(e.getMessage()));
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+                    mainHandler.post(() -> callback.onSuccess(responseBody));
+                } else {
+                    String error = "Error: " + response.code() + " " + response.message();
+                    mainHandler.post(() -> callback.onError(error));
+                }
+            }
+        });
     }
 }

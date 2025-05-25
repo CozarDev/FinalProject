@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header: Título y Prioridad -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Indicador de Prioridad -->
+            <View
+                android:id="@+id/priorityIndicator"
+                android:layout_width="4dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="12dp"
+                android:background="@color/colorAccent" />
+
+            <!-- Título y Emoji de Prioridad -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:id="@+id/priorityEmoji"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="🔴"
+                    android:textSize="16sp"
+                    android:layout_marginEnd="8dp" />
+
+                <TextView
+                    android:id="@+id/incidenceTitle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Título de la incidencia"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/colorPrimaryDark"
+                    android:maxLines="2"
+                    android:ellipsize="end" />
+
+            </LinearLayout>
+
+            <!-- Estado -->
+            <TextView
+                android:id="@+id/incidenceStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⏳ Pendiente"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/rounded_background"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+        <!-- Descripción -->
+        <TextView
+            android:id="@+id/incidenceDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Descripción de la incidencia..."
+            android:textSize="14sp"
+            android:textColor="@color/colorTextSecondary"
+            android:maxLines="3"
+            android:ellipsize="end" />
+
+        <!-- Info Footer -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <!-- Prioridad Texto -->
+            <TextView
+                android:id="@+id/priorityText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Alta"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:background="@drawable/rounded_background"
+                android:paddingHorizontal="6dp"
+                android:paddingVertical="2dp"
+                android:textColor="@color/white" />
+
+            <!-- Separador -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="12dp" />
+
+            <!-- Fecha de Creación -->
+            <TextView
+                android:id="@+id/createdDate"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hace 2 días"
+                android:textSize="12sp"
+                android:textColor="@color/colorTextSecondary"
+                android:drawablePadding="4dp"
+                app:drawableStartCompat="@drawable/ic_schedule" />
+
+        </LinearLayout>
+
+        <!-- Info Adicional (Asignado a / Creado por) -->
+        <LinearLayout
+            android:id="@+id/additionalInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:visibility="gone">
+
+            <!-- Creado por -->
+            <TextView
+                android:id="@+id/createdByInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="👤 Creado por: Juan Pérez"
+                android:textSize="11sp"
+                android:textColor="@color/colorTextSecondary" />
+
+            <!-- Asignado a -->
+            <TextView
+                android:id="@+id/assignedToInfo"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="🔧 Asignado a: María García"
+                android:textSize="11sp"
+                android:textColor="@color/colorTextSecondary"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Botones de Acción (Solo visibles según permisos) -->
+        <LinearLayout
+            android:id="@+id/actionButtons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:visibility="gone">
+
+            <!-- Botón Aceptar -->
+            <Button
+                android:id="@+id/btnAccept"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:text="Aceptar"
+                android:textSize="12sp"
+                android:paddingHorizontal="12dp"
+                android:visibility="gone" />
+
+            <!-- Botón Resolver -->
+            <Button
+                android:id="@+id/btnResolve"
+                style="@style/Widget.Material3.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:layout_marginEnd="8dp"
+                android:text="Resolver"
+                android:textSize="12sp"
+                android:paddingHorizontal="12dp"
+                android:visibility="gone" />
+
+            <!-- Botón Eliminar -->
+            <Button
+                android:id="@+id/btnDelete"
+                style="@style/Widget.Material3.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Eliminar"
+                android:textSize="12sp"
+                android:paddingHorizontal="12dp"
+                android:textColor="@color/colorError"
+                android:strokeColor="@color/colorError"
+                android:visibility="gone" />
+
+        </LinearLayout>
+
+        <!-- Indicador de Urgencia -->
+        <LinearLayout
+            android:id="@+id/urgencyIndicator"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:background="@color/colorError"
+            android:padding="4dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="⚠️ URGENTE - Más de 1 día sin resolver"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.cardview.widget.CardView> 

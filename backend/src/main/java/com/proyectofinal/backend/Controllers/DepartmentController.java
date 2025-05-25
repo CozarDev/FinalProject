@@ -42,6 +42,17 @@ public class DepartmentController {
         return departmentRepository.findAll();
     }
 
+    // Obtiene un departamento por su ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Department> getDepartmentById(@PathVariable String id) {
+        Optional<Department> departmentOpt = departmentRepository.findById(id);
+        if (departmentOpt.isPresent()) {
+            return ResponseEntity.ok(departmentOpt.get());
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
     // Crea un nuevo departamento y lo guarda en la base de datos
     @PostMapping
     public Department createDepartment(@RequestBody Department department) {

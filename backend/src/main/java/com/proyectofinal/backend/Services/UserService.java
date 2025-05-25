@@ -41,6 +41,14 @@ public class UserService {
     }
     
     /**
+     * Obtiene el ID del usuario autenticado actualmente
+     */
+    public String getCurrentUserId() {
+        User currentUser = getCurrentUser();
+        return currentUser != null ? currentUser.getId() : null;
+    }
+    
+    /**
      * Verifica si el usuario actual es administrador
      */
     public boolean isCurrentUserAdmin() {
@@ -79,6 +87,19 @@ public class UserService {
             return employee.map(Employee::getId).orElse(null);
         }
         return null;
+    }
+    
+    /**
+     * Obtiene el ID del departamento del usuario actual
+     */
+    public String getCurrentUserDepartmentId() {
+        String currentEmployeeId = getCurrentEmployeeId();
+        if (currentEmployeeId == null) {
+            return null;
+        }
+        
+        Optional<Employee> employee = employeeRepository.findById(currentEmployeeId);
+        return employee.map(Employee::getDepartmentId).orElse(null);
     }
     
     /**

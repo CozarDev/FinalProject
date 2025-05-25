@@ -5,4 +5,23 @@
     <color name="purple_500">#6200EE</color>
     <color name="colorPrimary">#6200EE</color>
     <color name="colorAccent">#03DAC5</color>
+    
+    <!-- Colores adicionales para Material Design -->
+    <color name="colorOnSurface">#1C1B1F</color>
+    <color name="colorOnSurfaceVariant">#49454F</color>
+    <color name="colorSurface">#FFFBFE</color>
+    <color name="colorSurfaceVariant">#E7E0EC</color>
+    <color name="colorOutline">#79747E</color>
+    
+    <!-- Colores para el sistema de incidencias -->
+    <color name="colorPrimaryDark">#3700B3</color>
+    <color name="colorSecondary">#9B59B6</color>
+    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorTextSecondary">#757575</color>
+    
+    <!-- Colores de estado -->
+    <color name="colorSuccess">#27AE60</color>
+    <color name="colorWarning">#F39C12</color>
+    <color name="colorError">#E74C3C</color>
+    <color name="colorInfo">#3498DB</color>
 </resources>

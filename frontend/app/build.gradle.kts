@@ -28,6 +28,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
 }
 
@@ -42,6 +43,13 @@ dependencies {
     implementation(libs.activity)
     implementation(libs.constraintlayout)
     
+    // Dependencias para el sistema de incidencias
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("androidx.viewpager2:viewpager2:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.3.2")
+    implementation("androidx.cardview:cardview:1.0.0")
+    implementation("androidx.fragment:fragment:1.6.2")
+    
     // JWT para decodificar tokens
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
@@ -49,6 +57,9 @@ dependencies {
     
     // TapTargetView para guías visuales
     implementation(libs.tap.target.view)
+    
+    // Core library desugaring para compatibilidad con Java 8
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
     
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)

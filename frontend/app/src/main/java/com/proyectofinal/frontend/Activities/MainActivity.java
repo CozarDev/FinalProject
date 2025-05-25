@@ -26,6 +26,7 @@ import com.getkeepsafe.taptargetview.TapTargetView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.proyectofinal.frontend.Api.ApiClient;
+import com.proyectofinal.frontend.Adapters.MainPagerAdapter;
 import com.proyectofinal.frontend.Fragments.ManageDepartmentsFragment;
 import com.proyectofinal.frontend.Fragments.ManageEmployeesFragment;
 import com.proyectofinal.frontend.Fragments.UserProfileFragment;
@@ -73,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
 
         // Inicializar API client
         apiClient = ApiClient.getInstance(this);
+        
+        // Configurar ViewPager2 y BottomNavigationView
+        setupViewPagerAndBottomNavigation();
         
         // Comprobar el rol del usuario
         checkUserRole();
@@ -146,6 +150,53 @@ public class MainActivity extends AppCompatActivity {
                 invalidateOptionsMenu();
             }
         });
+    }
+
+    private void setupViewPagerAndBottomNavigation() {
+        // Configurar el adaptador del ViewPager2
+        MainPagerAdapter pagerAdapter = new MainPagerAdapter(this);
+        viewPager2.setAdapter(pagerAdapter);
+        
+        // Configurar el menú del BottomNavigationView
+        bottomNavigationView.inflateMenu(R.menu.bottom_navigation_menu);
+        
+        // Configurar listener para el BottomNavigationView
+        bottomNavigationView.setOnItemSelectedListener(item -> {
+            int itemId = item.getItemId();
+            if (itemId == R.id.nav_home) {
+                viewPager2.setCurrentItem(0, true);
+                return true;
+            } else if (itemId == R.id.nav_incidents) {
+                viewPager2.setCurrentItem(1, true);
+                return true;
+            } else if (itemId == R.id.nav_work_reports) {
+                viewPager2.setCurrentItem(2, true);
+                return true;
+            }
+            return false;
+        });
+        
+        // Configurar listener para sincronizar ViewPager2 con BottomNavigationView
+        viewPager2.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+            @Override
+            public void onPageSelected(int position) {
+                super.onPageSelected(position);
+                switch (position) {
+                    case 0:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                        break;
+                    case 1:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_incidents);
+                        break;
+                    case 2:
+                        bottomNavigationView.setSelectedItemId(R.id.nav_work_reports);
+                        break;
+                }
+            }
+        });
+        
+        // Establecer la página inicial (Home)
+        viewPager2.setCurrentItem(0, false);
     }
 
     @Override
@@ -428,12 +479,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void showUserProfileFragment() {
-        // Ocultar el ViewPager y bottomNavigationView
-        if (viewPager2 != null) viewPager2.setVisibility(View.GONE);
-        if (bottomNavigationView != null) bottomNavigationView.setVisibility(View.GONE);
+        // Ocultar el ViewPager y mostrar el contenedor de fragmentos
+        viewPager2.setVisibility(View.GONE);
+        fragmentContainer.setVisibility(View.VISIBLE);
         
-        // Mostrar el contenedor de fragmentos
-        if (fragmentContainer != null) fragmentContainer.setVisibility(View.VISIBLE);
+        // Ocultar también el BottomNavigationView
+        bottomNavigationView.setVisibility(View.GONE);
         
         // Configurar botón de retroceso en la toolbar
         if (getSupportActionBar() != null) {
@@ -443,12 +494,14 @@ public class MainActivity extends AppCompatActivity {
         }
         materialToolbar.setNavigationOnClickListener(v -> onBackPressed());
         
-        // Crear y mostrar el fragmento de perfil de usuario
-        UserProfileFragment userProfileFragment = new UserProfileFragment();
-        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
-        transaction.replace(R.id.fragmentContainer, userProfileFragment);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        // Crear una instancia del fragmento de perfil
+        UserProfileFragment fragment = new UserProfileFragment();
+        
+        // Reemplazar el contenido actual con el fragmento
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null) // Permitir volver atrás con el botón atrás
+                .commit();
     }
 
     private void showManageShiftsFragment() {
@@ -469,16 +522,19 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setVisibility(View.GONE);
         }
         
+        // Configurar botón de retroceso en la toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Gestionar Turnos");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        materialToolbar.setNavigationOnClickListener(v -> onBackPressed());
+        
         // Crear y mostrar el fragmento
         ManageShiftTypesFragment manageShiftTypesFragment = new ManageShiftTypesFragment();
         transaction.replace(R.id.fragmentContainer, manageShiftTypesFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        
-        // Actualizar título del toolbar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Gestionar Turnos");
-        }
     }
 
     private void showManageShiftAssignmentsFragment() {
@@ -499,16 +555,19 @@ public class MainActivity extends AppCompatActivity {
             bottomNavigationView.setVisibility(View.GONE);
         }
         
+        // Configurar botón de retroceso en la toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Asignar Turnos");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        materialToolbar.setNavigationOnClickListener(v -> onBackPressed());
+        
         // Crear y mostrar el fragmento
         ManageShiftAssignmentsFragment manageShiftAssignmentsFragment = new ManageShiftAssignmentsFragment();
         transaction.replace(R.id.fragmentContainer, manageShiftAssignmentsFragment);
         transaction.addToBackStack(null);
         transaction.commit();
-        
-        // Actualizar título del toolbar
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setTitle("Asignar Turnos");
-        }
     }
 
     @Override
@@ -538,10 +597,16 @@ public class MainActivity extends AppCompatActivity {
         // Ocultar el contenedor de fragmentos
         if (fragmentContainer != null) fragmentContainer.setVisibility(View.GONE);
         
+        // Volver a la página de inicio
+        if (viewPager2 != null) {
+            viewPager2.setCurrentItem(0, true);
+        }
+        
         // Restaurar estado del ActionBar
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
+            getSupportActionBar().setTitle(""); // El título lo manejará cada fragmento
         }
     }
 

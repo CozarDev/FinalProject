@@ -1,0 +1,37 @@
+# Ignorar archivos innecesarios para el build
+frontend/
+*.md
+.git/
+.gitignore
+.vscode/
+*.log
+node_modules/
+.DS_Store
+Thumbs.db
+
+
+# Archivos de documentación y configuración
+README.md
+LICENSE
+.env*
+*.txt
+
+# Archivos de documentación del backend
+backend/CONFIGURACION_CLOUD_RUN.md
+backend/cursor_c_mo_me_puedes_llamar_v2.md
+backend/cursor_c_mo_me_puedes_llamar.md
+backend/deploy.sh
+backend/setup-secrets.sh
+backend/run-local.bat
+
+# Archivos temporales del backend
+backend/target/
+backend/.mvn/
+backend/mvnw*
+backend/*.log
+
+# Mantener solo el código fuente del backend
+!backend/src/
+!backend/pom.xml
+!backend/Dockerfile
+!backend/cloudbuild.yaml 

@@ -1,5 +1,6 @@
 package com.proyectofinal.backend.Models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 
@@ -7,6 +8,7 @@ import java.util.List;
 public class CalendarificModels {
 
     // Clase para la respuesta completa
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HolidayResponse {
         private Meta meta;
         private Response response;
@@ -19,6 +21,7 @@ public class CalendarificModels {
     }
 
     // Clase para el meta de la respuesta
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Meta {
         private int code;
 
@@ -27,6 +30,7 @@ public class CalendarificModels {
     }
 
     // Clase para el cuerpo de la respuesta
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Response {
         private List<Holiday> holidays;
 
@@ -34,22 +38,24 @@ public class CalendarificModels {
         public void setHolidays(List<Holiday> holidays) { this.holidays = holidays; }
     }
 
-    // Clase para cada festivo
+    // Clase para cada festivo - SOLO los campos esenciales
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class Holiday {
         private String name;
         private String description;
-        private String country;
+        private Country country;
         private HolidayDate date;
         private List<String> type;
 
+        // Solo getters y setters para los campos esenciales
         public String getName() { return name; }
         public void setName(String name) { this.name = name; }
 
         public String getDescription() { return description; }
         public void setDescription(String description) { this.description = description; }
 
-        public String getCountry() { return country; }
-        public void setCountry(String country) { this.country = country; }
+        public Country getCountry() { return country; }
+        public void setCountry(Country country) { this.country = country; }
 
         public HolidayDate getDate() { return date; }
         public void setDate(HolidayDate date) { this.date = date; }
@@ -59,6 +65,7 @@ public class CalendarificModels {
     }
 
     // Clase para la fecha del festivo
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HolidayDate {
         private String iso;
         private HolidayDateTime datetime;
@@ -71,6 +78,7 @@ public class CalendarificModels {
     }
 
     // Clase para la fecha y hora del festivo
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class HolidayDateTime {
         private int year;
         private int month;
@@ -84,5 +92,18 @@ public class CalendarificModels {
 
         public int getDay() { return day; }
         public void setDay(int day) { this.day = day; }
+    }
+
+    // Clase para el objeto country
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Country {
+        private String id;
+        private String name;
+
+        public String getId() { return id; }
+        public void setId(String id) { this.id = id; }
+
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
     }
 } 

@@ -111,6 +111,30 @@ public class EmployeeController {
         return ResponseEntity.ok(response);
     }
 
+    // Devuelve información del empleado actual basado en el usuario autenticado
+    @GetMapping("/me")
+    public ResponseEntity<?> getCurrentEmployee() {
+        try {
+            User currentUser = userService.getCurrentUser();
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Usuario no autenticado");
+            }
+            
+            // Buscar empleado por userId
+            List<Employee> employees = employeeRepository.findAll();
+            for (Employee employee : employees) {
+                if (employee.getUserId() != null && employee.getUserId().equals(currentUser.getId())) {
+                    return ResponseEntity.ok(employee);
+                }
+            }
+            
+            return ResponseEntity.notFound().build();
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Error al obtener información del empleado: " + e.getMessage());
+        }
+    }
+
     // Crea un nuevo empleado y un usuario asociado, luego guarda ambos en la base de datos
     @PostMapping
     public Employee createEmployee(@RequestBody Employee employee) {
