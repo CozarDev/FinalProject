@@ -30,6 +30,8 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/api/auth/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/api/test/**").permitAll()
                 .requestMatchers("/api/departments").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
                 .requestMatchers("/api/departments/manager/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN", "ROLE_DEPARTMENT_HEAD", "DEPARTMENT_HEAD")
                 .requestMatchers("/api/departments/**").hasAnyAuthority("ROLE_ADMIN", "ADMIN")
@@ -52,7 +54,7 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000", "http://127.0.0.1:3000", "http://10.0.2.2:8080"));
+        configuration.setAllowedOriginPatterns(Arrays.asList("*")); // Permitir todas las origins para desarrollo
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("*"));
         configuration.setAllowCredentials(true);
