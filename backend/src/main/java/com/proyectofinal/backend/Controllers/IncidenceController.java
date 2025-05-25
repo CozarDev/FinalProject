@@ -37,18 +37,13 @@ public class IncidenceController {
     public ResponseEntity<?> getPendingIncidences() {
         String currentUserId = userService.getCurrentUserId();
         
-        // DEBUG: Obtener información del usuario actual
-        logger.info("DEBUG - getPendingIncidences");
-        logger.info("DEBUG - currentUserId: {}", currentUserId);
-        logger.info("DEBUG - isCurrentUserAdmin: {}", userService.isCurrentUserAdmin());
-        logger.info("DEBUG - isIncidencesDepartmentEmployee: {}", incidenceService.isIncidencesDepartmentEmployee(currentUserId));
-        logger.info("DEBUG - isIncidencesDepartmentManager: {}", incidenceService.isIncidencesDepartmentManager(currentUserId));
+        // Verificar permisos de acceso
         
         // Verificar que es empleado del departamento de incidencias
         if (!incidenceService.isIncidencesDepartmentEmployee(currentUserId) && 
             !incidenceService.isIncidencesDepartmentManager(currentUserId) &&
             !userService.isCurrentUserAdmin()) {
-            logger.warn("DEBUG - Acceso denegado a pendientes. Usuario {} no tiene permisos", currentUserId);
+            logger.warn("Acceso denegado a pendientes. Usuario {} no tiene permisos", currentUserId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo empleados del departamento de incidencias pueden ver incidencias pendientes");
         }
@@ -147,20 +142,12 @@ public class IncidenceController {
     public ResponseEntity<?> getAllIncidences() {
         String currentUserId = userService.getCurrentUserId();
         
-        // DEBUG: Obtener información del usuario actual
-        logger.info("DEBUG - getAllIncidences");
-        logger.info("DEBUG - currentUserId: {}", currentUserId);
-        logger.info("DEBUG - isCurrentUserAdmin: {}", userService.isCurrentUserAdmin());
-        
         // Verificar permisos
         boolean isIncidenceManager = incidenceService.isIncidencesDepartmentManager(currentUserId);
         boolean isAdmin = userService.isCurrentUserAdmin();
         
-        logger.info("DEBUG - isIncidenceManager: {}", isIncidenceManager);
-        logger.info("DEBUG - isAdmin: {}", isAdmin);
-        
         if (!isIncidenceManager && !isAdmin) {
-            logger.warn("DEBUG - Acceso denegado. Usuario {} no tiene permisos para ver todas las incidencias", currentUserId);
+            logger.warn("Acceso denegado. Usuario {} no tiene permisos para ver todas las incidencias", currentUserId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo el jefe del departamento de incidencias y administradores pueden ver todas las incidencias");
         }
@@ -429,41 +416,7 @@ public class IncidenceController {
         }
     }
 
-    // **ENDPOINT DE DEBUG TEMPORAL**
-    
-    /**
-     * Endpoint de debug para verificar autenticación (sin autenticación requerida)
-     */
-    @GetMapping("/debug-auth")
-    public ResponseEntity<?> debugAuth() {
-        try {
-            String currentUserId = userService.getCurrentUserId();
-            User currentUser = userService.getCurrentUser();
-            
-            Map<String, Object> debugInfo = new HashMap<>();
-            debugInfo.put("authenticated", currentUser != null);
-            debugInfo.put("currentUserId", currentUserId);
-            debugInfo.put("currentUser", currentUser != null ? currentUser.getUsername() : "null");
-            debugInfo.put("currentUserRole", currentUser != null ? currentUser.getRole() : "null");
-            debugInfo.put("isAdmin", userService.isCurrentUserAdmin());
-            debugInfo.put("authorities", currentUser != null ? currentUser.getAuthorities() : "null");
-            
-            logger.info("DEBUG AUTH - Authenticated: {}", currentUser != null);
-            logger.info("DEBUG AUTH - User ID: {}", currentUserId);
-            logger.info("DEBUG AUTH - User: {}", currentUser != null ? currentUser.getUsername() : "null");
-            logger.info("DEBUG AUTH - Role: {}", currentUser != null ? currentUser.getRole() : "null");
-            logger.info("DEBUG AUTH - Is Admin: {}", userService.isCurrentUserAdmin());
-            logger.info("DEBUG AUTH - Authorities: {}", currentUser != null ? currentUser.getAuthorities() : "null");
-            
-            return ResponseEntity.ok(debugInfo);
-        } catch (Exception e) {
-            logger.error("DEBUG AUTH - Error: ", e);
-            Map<String, Object> errorInfo = new HashMap<>();
-            errorInfo.put("error", e.getMessage());
-            errorInfo.put("authenticated", false);
-            return ResponseEntity.ok(errorInfo);
-        }
-    }
+
 
     // **CLASES DE REQUEST**
 

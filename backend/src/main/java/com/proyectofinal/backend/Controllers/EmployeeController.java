@@ -222,7 +222,7 @@ public class EmployeeController {
                 }
             } catch (Exception e) {
                 // Si hay error en la conversión, ignoramos
-                System.out.println("Error al extraer username/password: " + e.getMessage());
+                // Log silencioso - no es crítico
             }
             
             // Si se obtuvieron los datos, actualizar el usuario

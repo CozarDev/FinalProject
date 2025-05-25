@@ -94,7 +94,7 @@ public class CalendarificService {
         logger.info("Eliminados {} festivos existentes para el año {}", deletedCount, year);
         
         String url = BASE_URL + "?api_key=" + apiKey + "&country=ES&year=" + year;
-        logger.debug("URL de la API: {}", url.replace(apiKey, "***"));
+        logger.info("Consultando API de Calendarific para año {}", year);
         
         try {
             logger.info("Llamando a la API de Calendarific...");
@@ -121,20 +121,15 @@ public class CalendarificService {
             int count = 0;
             
             for (Holiday holiday : holidays) {
-                logger.debug("Procesando festivo: {} - Tipos: {}", holiday.getName(), holiday.getType());
-                
                 // Solo importar festivos nacionales
                 if (holiday.getType() != null && holiday.getType().contains("National holiday")) {
                     try {
                         ShiftException exception = convertHolidayToException(holiday);
                         shiftExceptionRepository.save(exception);
                         count++;
-                        logger.debug("Festivo guardado: {} en fecha {}", holiday.getName(), holiday.getDate().getIso());
                     } catch (Exception e) {
                         logger.error("Error al convertir/guardar festivo {}: {}", holiday.getName(), e.getMessage());
                     }
-                } else {
-                    logger.debug("Saltando festivo '{}' - no es nacional", holiday.getName());
                 }
             }
             
@@ -197,7 +192,7 @@ public class CalendarificService {
             throw new IllegalArgumentException("Fecha del festivo no válida: " + holiday.getName());
         }
         
-        logger.debug("Convirtiendo festivo: {} - Fecha ISO: {}", holiday.getName(), holiday.getDate().getIso());
+
         
         ShiftException exception = new ShiftException();
         exception.setEmployeeId(null); // Aplica a todos los empleados
@@ -213,7 +208,7 @@ public class CalendarificService {
             exception.setStartDate(holidayDate);
             exception.setEndDate(holidayDate); // Mismo día inicio y fin para festivos de un día
             
-            logger.debug("Festivo convertido exitosamente: {} -> {}", holiday.getName(), holidayDate);
+
             return exception;
         } catch (ParseException e) {
             logger.error("Error al parsear fecha ISO '{}' para festivo '{}'", isoDate, holiday.getName());

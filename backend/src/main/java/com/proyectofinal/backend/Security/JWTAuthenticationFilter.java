@@ -60,16 +60,12 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
         String jwt = null;
         String role = null;
 
-        logger.info("DEBUG JWT - Request: {} {}", request.getMethod(), request.getRequestURI());
-        logger.info("DEBUG JWT - Authorization header: {}", header != null ? "Present" : "Missing");
-
         if (header != null && header.startsWith("Bearer ")) {
             jwt = header.substring(7);
-            logger.debug("DEBUG JWT - Token extracted successfully");
 
             // Verificar si el token está revocado
             if (authController.isTokenRevoked(jwt)) {
-                logger.warn("DEBUG JWT - Token is revoked");
+                logger.warn("Token revocado para request: {} {}", request.getMethod(), request.getRequestURI());
                 response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                 response.getWriter().write("Token revocado");
                 return;
@@ -79,22 +75,16 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 // Extraer información del token JWT
                 username = jwtService.extractUsername(jwt);
                 role = jwtService.extractRole(jwt);
-                logger.info("DEBUG JWT - Username: {}, Role: {}", username, role);
             } catch (Exception e) {
-                logger.error("DEBUG JWT - Error al procesar el token JWT", e);
+                logger.error("Error al procesar el token JWT", e);
             }
-        } else {
-            logger.info("DEBUG JWT - No Bearer token found");
         }
 
         // Validar el token y establecer la autenticación en el contexto de seguridad
         if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            logger.info("DEBUG JWT - Attempting to load user: {}", username);
             UserDetails userDetails = this.userDetailsService.loadUserByUsername(username);
-            logger.info("DEBUG JWT - User loaded successfully: {}", userDetails.getUsername());
 
             if (jwtService.validateToken(jwt, userDetails.getUsername())) {
-                logger.info("DEBUG JWT - Token validation successful for user: {}", username);
                 // Crear manualmente las autoridades si es necesario
                 List<SimpleGrantedAuthority> authorities = new ArrayList<>();
                 if (role != null && !role.isEmpty()) {
