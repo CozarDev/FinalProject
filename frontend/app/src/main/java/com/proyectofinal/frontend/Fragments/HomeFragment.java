@@ -488,7 +488,7 @@ public class HomeFragment extends Fragment {
             animatorSet.start();
         }
         
-        // Configurar listener para ocultar la tarjeta al tocar fuera
+        // Configurar listener para ocultar la tarjeta al tocar en ella
         dayInfoCard.setOnClickListener(v -> hideDayInfo());
     }
     
@@ -531,10 +531,10 @@ public class HomeFragment extends Fragment {
                     case "NATIONAL_HOLIDAY":
                         return "📅 " + formattedDate + "\n\n🎉 Día festivo nacional\n" + 
                                (exception.getDescription() != null && !exception.getDescription().isEmpty() ? 
-                                exception.getDescription() : "Festivo nacional");
+                                exception.getDescription() : "Festivo nacional") + "\n\n💡 Toca aquí para cerrar";
                     case "VACATION":
                         return "📅 " + formattedDate + "\n\n🏖️ Día de vacaciones\n" + 
-                               "Disfruta tu día libre";
+                               "Disfruta tu día libre\n\n💡 Toca aquí para cerrar";
                     default:
                         Log.w(TAG, "Tipo de excepción no manejado: " + exception.getType());
                         break;
@@ -551,13 +551,14 @@ public class HomeFragment extends Fragment {
         if (shiftForDay != null) {
             return "📅 " + formattedDate + "\n\n💼 Día laboral\n" + 
                    "Turno: " + shiftForDay.getName() + "\n" +
-                   "Horario: " + shiftForDay.getStartTime() + " - " + shiftForDay.getEndTime();
+                   "Horario: " + shiftForDay.getStartTime() + " - " + shiftForDay.getEndTime() + 
+                   "\n\n💡 Toca aquí para cerrar";
         }
         
         // Día de descanso
         Log.d(TAG, "Día de descanso - sin turno ni excepción");
         return "📅 " + formattedDate + "\n\n😴 Día de descanso\n" + 
-               "No tienes turno asignado";
+               "No tienes turno asignado\n\n💡 Toca aquí para cerrar";
     }
     
     private ShiftType getShiftForDate(Date date) {
@@ -779,5 +780,38 @@ public class HomeFragment extends Fragment {
         Log.d(TAG, "  ¿Mismo año?: " + sameYear + ", ¿Mismo día?: " + sameDay + ", Resultado: " + (sameYear && sameDay));
         
         return sameYear && sameDay;
+    }
+
+    // Método para ser llamado cuando se selecciona esta pestaña
+    public void onPageSelected() {
+        Log.d(TAG, "onPageSelected() - HomeFragment seleccionado");
+        
+        // Recargar datos del usuario y turnos
+        if (getView() != null && isAdded() && !isDetached()) {
+            Log.d(TAG, "Refrescando datos del HomeFragment");
+            
+            // Mostrar mensaje de actualización
+            if (welcomeTextView != null) {
+                welcomeTextView.setText("🔄 Actualizando información...");
+            }
+            if (nextShiftTextView != null) {
+                nextShiftTextView.setText("⏳ Cargando datos actualizados...");
+            }
+            
+            // Recargar información del usuario
+            getUserInfo();
+        }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() - HomeFragment visible");
+        
+        // Actualizar datos cuando el fragmento vuelve a ser visible
+        if (getView() != null && isAdded()) {
+            Log.d(TAG, "Refrescando datos en onResume");
+            getUserInfo();
+        }
     }
 } 

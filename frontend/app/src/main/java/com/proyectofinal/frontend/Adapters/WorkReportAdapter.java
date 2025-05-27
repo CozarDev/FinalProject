@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.proyectofinal.frontend.Models.WorkReport;
 import com.proyectofinal.frontend.R;
 
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -77,9 +78,19 @@ public class WorkReportAdapter extends RecyclerView.Adapter<WorkReportAdapter.Wo
         
         public void bind(WorkReport workReport) {
             // Fecha del parte
-            if (workReport.getReportDate() != null) {
-                DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-                tvDate.setText(workReport.getReportDate().format(formatter));
+            if (workReport.getReportDate() != null && !workReport.getReportDate().isEmpty()) {
+                try {
+                    // Convertir de String a LocalDate para formatear
+                    LocalDate date = workReport.getReportDateAsLocalDate();
+                    if (date != null) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+                        tvDate.setText(date.format(formatter));
+                    } else {
+                        tvDate.setText(workReport.getReportDate()); // Mostrar el string tal como viene
+                    }
+                } catch (Exception e) {
+                    tvDate.setText(workReport.getReportDate()); // Mostrar el string tal como viene
+                }
             } else {
                 tvDate.setText("Fecha no disponible");
             }

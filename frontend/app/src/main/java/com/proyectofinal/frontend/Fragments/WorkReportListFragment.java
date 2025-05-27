@@ -107,13 +107,20 @@ public class WorkReportListFragment extends Fragment {
     // Método para ser llamado desde el fragmento padre cuando se navega a esta pestaña
     public void onPageSelected() {
         android.util.Log.d(TAG, "onPageSelected() - pestaña seleccionada");
+        android.util.Log.d(TAG, "Estado del fragmento - isAdded: " + isAdded() + ", isDetached: " + isDetached() + ", getView: " + (getView() != null) + ", adapter: " + (adapter != null));
+        
         if (getView() != null && adapter != null) {
+            android.util.Log.d(TAG, "Condiciones cumplidas, programando refresh con delay");
             new Handler().postDelayed(() -> {
                 if (isAdded() && !isDetached()) {
-                    android.util.Log.d(TAG, "Ejecutando refresh en onPageSelected");
+                    android.util.Log.d(TAG, "Ejecutando refresh en onPageSelected después del delay");
                     loadWorkReports();
+                } else {
+                    android.util.Log.w(TAG, "Fragmento ya no es válido después del delay");
                 }
             }, 200);
+        } else {
+            android.util.Log.w(TAG, "Condiciones no cumplidas para refresh en onPageSelected");
         }
     }
 
@@ -123,7 +130,7 @@ public class WorkReportListFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new WorkReportAdapter(workReports, this::onWorkReportClick);
+        adapter = new WorkReportAdapter(workReports, null); // Quitar funcionalidad de click
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         recyclerView.setAdapter(adapter);
     }
@@ -138,6 +145,7 @@ public class WorkReportListFragment extends Fragment {
 
     public void loadWorkReports() {
         android.util.Log.d(TAG, "loadWorkReports() iniciado");
+        android.util.Log.d(TAG, "Estado del fragmento en loadWorkReports - isAdded: " + isAdded() + ", isDetached: " + isDetached());
         
         // Verificar que el fragmento esté en un estado válido
         if (!isAdded() || isDetached()) {
@@ -145,7 +153,14 @@ public class WorkReportListFragment extends Fragment {
             return;
         }
         
-        swipeRefreshLayout.setRefreshing(true);
+        android.util.Log.d(TAG, "Fragmento válido, iniciando carga de datos");
+        
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(true);
+            android.util.Log.d(TAG, "SwipeRefreshLayout activado");
+        } else {
+            android.util.Log.w(TAG, "SwipeRefreshLayout es null");
+        }
         
         Call<List<Map<String, Object>>> call = apiService.getWorkReports();
         android.util.Log.d(TAG, "Llamada API iniciada");
@@ -214,7 +229,7 @@ public class WorkReportListFragment extends Fragment {
         // Parsear fecha
         String reportDateStr = (String) data.get("reportDate");
         if (reportDateStr != null) {
-            workReport.setReportDate(LocalDate.parse(reportDateStr));
+            workReport.setReportDate(reportDateStr);
         }
         
         workReport.setStartTime((String) data.get("startTime"));
@@ -231,21 +246,18 @@ public class WorkReportListFragment extends Fragment {
         // Parsear fechas de creación y actualización
         String createdAtStr = (String) data.get("createdAt");
         if (createdAtStr != null) {
-            workReport.setCreatedAt(LocalDateTime.parse(createdAtStr));
+            workReport.setCreatedAt(createdAtStr);
         }
         
         String updatedAtStr = (String) data.get("updatedAt");
         if (updatedAtStr != null) {
-            workReport.setUpdatedAt(LocalDateTime.parse(updatedAtStr));
+            workReport.setUpdatedAt(updatedAtStr);
         }
         
         return workReport;
     }
 
-    private void onWorkReportClick(WorkReport workReport) {
-        // TODO: Implementar vista de detalles
-        Toast.makeText(getContext(), "Ver detalles de: " + workReport.getId(), Toast.LENGTH_SHORT).show();
-    }
+    // Método eliminado - ya no se permite ver detalles de partes de trabajo
 
     private void showError(String message) {
         if (getContext() != null) {

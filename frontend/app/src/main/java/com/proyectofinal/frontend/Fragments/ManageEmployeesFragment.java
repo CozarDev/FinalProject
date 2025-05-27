@@ -129,7 +129,7 @@ public class ManageEmployeesFragment extends Fragment implements EmployeeAdapter
             
             // Crear el servicio para empleados usando la URL base y cliente HTTP ya configurados
             Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(ApiClient.BASE_URL)
+                    .baseUrl(apiClient.getCurrentBaseUrl())
                     .addConverterFactory(GsonConverterFactory.create())
                     .client(apiClient.getOkHttpClient()) // Usar el cliente HTTP configurado con token
                     .build();

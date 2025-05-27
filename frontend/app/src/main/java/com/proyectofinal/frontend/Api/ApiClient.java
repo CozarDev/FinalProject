@@ -8,6 +8,8 @@ import android.util.Log;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.proyectofinal.frontend.Config.ApiConfig;
+import com.proyectofinal.frontend.Utils.TokenExpirationManager;
 
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -23,7 +25,6 @@ import java.io.IOException;
 
 public class ApiClient {
     private static final String TAG = "ApiClient";
-    public static final String BASE_URL = "http://10.0.2.2:8080/"; // URL para el emulador Android
     private static ApiClient instance;
     private ApiService apiService;
     private UserApiService userApiService;
@@ -34,6 +35,7 @@ public class ApiClient {
     private HolidayApiService holidayApiService;
     private IncidenceRetrofitService incidenceRetrofitService;
     private WorkReportApiService workReportApiService;
+    private FCMApiService fcmApiService;
     private Context context;
     private OkHttpClient okHttpClient;
     private Retrofit retrofit;
@@ -47,12 +49,44 @@ public class ApiClient {
     }
 
     private void initializeClient() {
+        // Obtener la URL base desde la configuración
+        ApiConfig apiConfig = ApiConfig.getInstance(context);
+        String baseUrl = apiConfig.getBaseUrl();
+        
         OkHttpClient.Builder httpClient = new OkHttpClient.Builder();
 
         // Logging para depuración
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         httpClient.addInterceptor(logging);
+
+        // Interceptor para manejar respuestas de error de autenticación
+        httpClient.addInterceptor(chain -> {
+            Request request = chain.request();
+            Response response = chain.proceed(request);
+            
+            // Si recibimos 401 (Unauthorized), probablemente el token expiró
+            if (response.code() == 401) {
+                Log.w(TAG, "Respuesta 401 recibida - Token posiblemente expirado");
+                
+                // Limpiar token expirado
+                SharedPreferences prefs = context.getSharedPreferences("AppPrefs", Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = prefs.edit();
+                editor.remove("JWT_TOKEN");
+                editor.remove("USER_ROLE");
+                editor.remove("USER_ID");
+                editor.apply();
+                
+                Log.i(TAG, "Token limpiado debido a respuesta 401");
+                
+                // Notificar en el hilo principal que el usuario debe hacer login
+                mainHandler.post(() -> {
+                    TokenExpirationManager.handleTokenExpiration(context);
+                });
+            }
+            
+            return response;
+        });
 
         // Interceptor para añadir token JWT a las peticiones
         httpClient.addInterceptor(chain -> {
@@ -95,7 +129,7 @@ public class ApiClient {
                 .create();
 
         retrofit = new Retrofit.Builder()
-                .baseUrl(BASE_URL)
+                .baseUrl(baseUrl)
                 .addConverterFactory(ScalarsConverterFactory.create()) // Para respuestas String
                 .addConverterFactory(GsonConverterFactory.create(gson)) // Para respuestas JSON
                 .client(okHttpClient)
@@ -103,7 +137,7 @@ public class ApiClient {
 
         apiService = retrofit.create(ApiService.class);
         
-        Log.d(TAG, "ApiClient inicializado con URL base: " + BASE_URL);
+        Log.d(TAG, "ApiClient inicializado con URL base: " + baseUrl);
     }
 
     public static synchronized ApiClient getInstance(Context context) {
@@ -180,10 +214,40 @@ public class ApiClient {
         }
         return workReportApiService;
     }
+    
+    public FCMApiService getFCMApiService() {
+        if (fcmApiService == null) {
+            fcmApiService = retrofit.create(FCMApiService.class);
+        }
+        return fcmApiService;
+    }
 
     // Método para obtener el OkHttpClient configurado
     public OkHttpClient getOkHttpClient() {
         return okHttpClient;
+    }
+    
+    // Métodos para gestión de configuración de URL
+    public String getCurrentBaseUrl() {
+        return ApiConfig.getInstance(context).getBaseUrl();
+    }
+    
+    public void updateBaseUrl(String newUrl) {
+        ApiConfig.getInstance(context).setBaseUrl(newUrl);
+        // Reinicializar el cliente con la nueva URL
+        initializeClient();
+        Log.i(TAG, "Cliente reinicializado con nueva URL: " + newUrl);
+    }
+    
+    public void resetToDefaultUrl() {
+        ApiConfig.getInstance(context).resetToDefault();
+        // Reinicializar el cliente con la URL por defecto
+        initializeClient();
+        Log.i(TAG, "Cliente reinicializado con URL por defecto");
+    }
+    
+    public boolean isDevelopmentMode() {
+        return ApiConfig.getInstance(context).isDevelopmentMode();
     }
 
     // **INTERFAZ PARA CALLBACKS SIMPLES**
@@ -195,8 +259,9 @@ public class ApiClient {
     // **MÉTODOS SIMPLES PARA COMPATIBILIDAD**
     
     public void get(String endpoint, ApiCallback callback) {
+        String baseUrl = getCurrentBaseUrl();
         Request request = new Request.Builder()
-                .url(BASE_URL + endpoint)
+                .url(baseUrl + endpoint)
                 .build();
 
         okHttpClient.newCall(request).enqueue(new okhttp3.Callback() {
@@ -219,9 +284,10 @@ public class ApiClient {
     }
 
     public void post(String endpoint, String jsonBody, ApiCallback callback) {
+        String baseUrl = getCurrentBaseUrl();
         RequestBody body = RequestBody.create(MediaType.parse("application/json"), jsonBody);
         Request request = new Request.Builder()
-                .url(BASE_URL + endpoint)
+                .url(baseUrl + endpoint)
                 .post(body)
                 .build();
 
@@ -245,8 +311,9 @@ public class ApiClient {
     }
 
     public void delete(String endpoint, ApiCallback callback) {
+        String baseUrl = getCurrentBaseUrl();
         Request request = new Request.Builder()
-                .url(BASE_URL + endpoint)
+                .url(baseUrl + endpoint)
                 .delete()
                 .build();
 

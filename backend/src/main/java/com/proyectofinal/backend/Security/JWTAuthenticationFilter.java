@@ -18,6 +18,8 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import com.proyectofinal.backend.Controllers.AuthController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.MalformedJwtException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -75,8 +77,24 @@ public class JWTAuthenticationFilter extends OncePerRequestFilter {
                 // Extraer información del token JWT
                 username = jwtService.extractUsername(jwt);
                 role = jwtService.extractRole(jwt);
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                logger.warn("Token JWT expirado para request: {} {}", request.getMethod(), request.getRequestURI());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"TOKEN_EXPIRED\",\"message\":\"El token JWT ha expirado. Por favor, inicia sesión nuevamente.\"}");
+                return;
+            } catch (io.jsonwebtoken.MalformedJwtException e) {
+                logger.warn("Token JWT malformado para request: {} {}", request.getMethod(), request.getRequestURI());
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"INVALID_TOKEN\",\"message\":\"Token JWT inválido.\"}");
+                return;
             } catch (Exception e) {
                 logger.error("Error al procesar el token JWT", e);
+                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                response.setContentType("application/json");
+                response.getWriter().write("{\"error\":\"TOKEN_ERROR\",\"message\":\"Error al procesar el token de autenticación.\"}");
+                return;
             }
         }
 

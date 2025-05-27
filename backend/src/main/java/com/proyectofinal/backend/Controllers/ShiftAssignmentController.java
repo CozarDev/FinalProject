@@ -3,10 +3,13 @@ package com.proyectofinal.backend.Controllers;
 import com.proyectofinal.backend.Models.Department;
 import com.proyectofinal.backend.Models.Employee;
 import com.proyectofinal.backend.Models.ShiftAssignment;
+import com.proyectofinal.backend.Models.ShiftType;
 import com.proyectofinal.backend.Repositories.DepartmentRepository;
 import com.proyectofinal.backend.Repositories.EmployeeRepository;
 import com.proyectofinal.backend.Repositories.ShiftAssignmentRepository;
+import com.proyectofinal.backend.Repositories.ShiftTypeRepository;
 import com.proyectofinal.backend.Services.UserService;
+import com.proyectofinal.backend.Services.FirebaseMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,17 +32,23 @@ public class ShiftAssignmentController {
     private final ShiftAssignmentRepository shiftAssignmentRepository;
     private final EmployeeRepository employeeRepository;
     private final DepartmentRepository departmentRepository;
+    private final ShiftTypeRepository shiftTypeRepository;
     private final UserService userService;
+    private final FirebaseMessagingService firebaseMessagingService;
 
     @Autowired
     public ShiftAssignmentController(ShiftAssignmentRepository shiftAssignmentRepository,
                                     EmployeeRepository employeeRepository,
                                     DepartmentRepository departmentRepository,
-                                    UserService userService) {
+                                    ShiftTypeRepository shiftTypeRepository,
+                                    UserService userService,
+                                    FirebaseMessagingService firebaseMessagingService) {
         this.shiftAssignmentRepository = shiftAssignmentRepository;
         this.employeeRepository = employeeRepository;
         this.departmentRepository = departmentRepository;
+        this.shiftTypeRepository = shiftTypeRepository;
         this.userService = userService;
+        this.firebaseMessagingService = firebaseMessagingService;
     }
 
     // Obtener todas las asignaciones de turnos (solo admin)
@@ -238,6 +247,43 @@ public class ShiftAssignmentController {
         
         ShiftAssignment savedAssignment = shiftAssignmentRepository.save(shiftAssignment);
         logger.info("Asignación de turno creada con ID: {}", savedAssignment.getId());
+        
+        // Enviar notificación FCM al empleado asignado
+        try {
+            // Obtener información del empleado y tipo de turno para la notificación
+            String employeeUserId = employee.get().getUserId();
+            
+            if (employeeUserId != null && !employeeUserId.trim().isEmpty()) {
+                // Obtener información del tipo de turno
+                String shiftTypeName = "Turno";
+                if (savedAssignment.getShiftTypeId() != null) {
+                    Optional<ShiftType> shiftTypeOpt = shiftTypeRepository.findById(savedAssignment.getShiftTypeId());
+                    if (shiftTypeOpt.isPresent()) {
+                        shiftTypeName = shiftTypeOpt.get().getName();
+                    }
+                }
+                
+                // Formatear fecha
+                String shiftDate = savedAssignment.getStartDate() != null ? 
+                    savedAssignment.getStartDate().toString() : "fecha por determinar";
+                
+                logger.info("Enviando notificación de asignación de turno al empleado: {}", employeeUserId);
+                
+                firebaseMessagingService.sendShiftAssignmentNotification(
+                    employeeUserId,
+                    shiftDate,
+                    shiftTypeName
+                );
+                
+                logger.info("Notificación de asignación de turno enviada al empleado: {}", employeeUserId);
+            } else {
+                logger.warn("No se puede enviar notificación: empleado {} no tiene userId", savedAssignment.getEmployeeId());
+            }
+        } catch (Exception e) {
+            logger.error("Error enviando notificación de asignación de turno: {}", e.getMessage());
+            // No fallar la creación de la asignación por un error de notificación
+        }
+        
         return ResponseEntity.status(HttpStatus.CREATED).body(savedAssignment);
     }
 

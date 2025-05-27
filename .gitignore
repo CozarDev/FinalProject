@@ -1,0 +1,231 @@
+# TurnadoApp - .gitignore Unificado
+
+# ========================================
+# ARCHIVOS DE CONFIGURACIÓN SENSIBLES
+# ========================================
+
+# Backend - Archivos de configuración con credenciales
+backend/src/main/resources/application.properties
+backend/src/main/resources/firebase-service-account.json
+
+# Frontend - Archivos de configuración con URLs y credenciales
+frontend/app/src/main/java/com/proyectofinal/frontend/Config/ApiConfig.java
+frontend/app/google-services.json
+
+# ========================================
+# BACKEND (Spring Boot)
+# ========================================
+
+# Maven
+backend/target/
+backend/pom.xml.tag
+backend/pom.xml.releaseBackup
+backend/pom.xml.versionsBackup
+backend/pom.xml.next
+backend/release.properties
+backend/dependency-reduced-pom.xml
+backend/buildNumber.properties
+backend/.mvn/timing.properties
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Spring Boot
+backend/HELP.md
+backend/*.log
+backend/*.gz
+
+# IDE - IntelliJ IDEA
+backend/.idea/
+backend/*.iws
+backend/*.iml
+backend/*.ipr
+
+# IDE - Eclipse
+backend/.apt_generated
+backend/.classpath
+backend/.factorypath
+backend/.project
+backend/.settings
+backend/.springBeans
+backend/.sts4-cache
+
+# IDE - NetBeans
+backend/nbproject/private/
+backend/nbbuild/
+backend/dist/
+backend/nbdist/
+backend/.nb-gradle/
+backend/build/
+
+# IDE - VS Code
+backend/.vscode/
+
+# ========================================
+# FRONTEND (Android)
+# ========================================
+
+# Android Studio
+frontend/.idea/
+frontend/.gradle/
+frontend/build/
+frontend/app/build/
+frontend/*/build/
+
+# Local configuration files
+frontend/local.properties
+frontend/.DS_Store
+
+# Android specific
+frontend/*.iml
+frontend/.externalNativeBuild
+frontend/.cxx
+frontend/captures/
+
+# Gradle
+frontend/.gradle/
+frontend/gradle/wrapper/gradle-wrapper.jar
+
+# ========================================
+# ARCHIVOS DEL SISTEMA
+# ========================================
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+
+# Linux
+*~
+.nfs*
+
+# ========================================
+# HERRAMIENTAS DE DESARROLLO
+# ========================================
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Vim
+*.swp
+*.swo
+*~
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+
+# ========================================
+# LOGS Y ARCHIVOS TEMPORALES
+# ========================================
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+
+# ========================================
+# CLOUD Y DESPLIEGUE
+# ========================================
+
+# Google Cloud
+.gcloud/
+gcloud-config/
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ========================================
+# DOCUMENTACIÓN TEMPORAL
+# ========================================
+
+# Archivos de documentación temporal (mantener solo los principales)
+**/DIAGNOSTICO_*.md
+**/IMPLEMENTACION_*.md
+**/LIMPIEZA_*.md
+**/MEJORAS_*.md
+**/cursor_*.md
+**/*_temp.md
+**/*_backup.md
+
+# Scripts temporales
+**/test-*.http
+**/test-*.json
+**/deploy-temp.*
+**/setup-temp.*
+
+# ========================================
+# ARCHIVOS DE BACKUP
+# ========================================
+
+# Backups
+*.bak
+*.backup
+*.old
+*.orig
+*.save
+
+# Compressed files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# ========================================
+# NOTAS IMPORTANTES
+# ========================================
+
+# Este .gitignore protege:
+# 1. Credenciales de Firebase (backend y frontend)
+# 2. Configuraciones de API y URLs de producción
+# 3. Archivos de configuración local
+# 4. Archivos temporales y de build
+# 5. Configuraciones específicas del IDE
+# 6. Logs y archivos de sistema
+
+# Para configurar el proyecto:
+# 1. Ejecuta setup.bat/sh en la raíz
+# 2. Los archivos .example se copiarán automáticamente

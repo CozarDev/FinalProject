@@ -1,0 +1,113 @@
+package com.proyectofinal.frontend.Config;
+
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.util.Log;
+
+/**
+ * CONFIGURACIÓN AUTOMÁTICA - NO REQUIERE CAMBIOS PARA DESARROLLO LOCAL
+ * 
+ * Este archivo está configurado para funcionar automáticamente con:
+ * - Backend local en http://10.0.2.2:8080/ (emulador Android)
+ * - Backend local en http://localhost:8080/ (para dispositivos físicos, cambiar IP)
+ * 
+ * PARA USAR:
+ * 1. Copia este archivo a ApiConfig.java
+ * 2. ¡Ya está! No necesitas cambiar nada más
+ * 3. El proyecto funcionará automáticamente en local
+ * 
+ * PARA CAMBIAR A PRODUCCIÓN (opcional):
+ * - Cambia DEFAULT_PRODUCTION_URL por tu URL real
+ * - Usa apiConfig.switchToProduction() en el código
+ */
+public class ApiConfig {
+    private static final String TAG = "ApiConfig";
+    private static final String PREFS_NAME = "ApiConfig";
+    private static final String KEY_BASE_URL = "base_url";
+    
+    // URLs por defecto - FUNCIONAN AUTOMÁTICAMENTE
+    private static final String DEFAULT_LOCAL_URL = "http://10.0.2.2:8080/";
+    private static final String DEFAULT_PRODUCTION_URL = "https://your-backend-url.run.app/"; // Cambiar por tu URL real
+    
+    private static ApiConfig instance;
+    private Context context;
+    private String baseUrl;
+    
+    private ApiConfig(Context context) {
+        this.context = context.getApplicationContext();
+        loadConfiguration();
+    }
+    
+    public static synchronized ApiConfig getInstance(Context context) {
+        if (instance == null) {
+            instance = new ApiConfig(context);
+        }
+        return instance;
+    }
+    
+    private void loadConfiguration() {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        
+        // Obtener URL guardada o usar la local por defecto
+        String savedUrl = prefs.getString(KEY_BASE_URL, null);
+        
+        if (savedUrl != null && !savedUrl.isEmpty()) {
+            baseUrl = savedUrl;
+            Log.d(TAG, "URL cargada desde preferencias: " + baseUrl);
+        } else {
+            // SIEMPRE usar URL local por defecto para que funcione inmediatamente
+            baseUrl = DEFAULT_LOCAL_URL;
+            Log.d(TAG, "Usando URL local por defecto: " + baseUrl);
+        }
+    }
+    
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+    
+    public void setBaseUrl(String url) {
+        if (url != null && !url.isEmpty()) {
+            // Asegurar que la URL termine con /
+            if (!url.endsWith("/")) {
+                url += "/";
+            }
+            
+            this.baseUrl = url;
+            
+            // Guardar en preferencias
+            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+            prefs.edit().putString(KEY_BASE_URL, url).apply();
+            
+            Log.i(TAG, "URL base actualizada: " + url);
+        }
+    }
+    
+    public void resetToDefault() {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().remove(KEY_BASE_URL).apply();
+        loadConfiguration();
+        Log.i(TAG, "URL base restablecida a valor por defecto: " + baseUrl);
+    }
+    
+    public boolean isDevelopmentMode() {
+        return baseUrl.equals(DEFAULT_LOCAL_URL);
+    }
+    
+    public String getLocalUrl() {
+        return DEFAULT_LOCAL_URL;
+    }
+    
+    public String getProductionUrl() {
+        return DEFAULT_PRODUCTION_URL;
+    }
+    
+    // Método para cambiar rápidamente a producción
+    public void switchToProduction() {
+        setBaseUrl(DEFAULT_PRODUCTION_URL);
+    }
+    
+    // Método para volver a desarrollo local
+    public void switchToLocal() {
+        setBaseUrl(DEFAULT_LOCAL_URL);
+    }
+} 

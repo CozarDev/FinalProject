@@ -571,4 +571,31 @@ public class IncidencesFragment extends Fragment {
             }
         });
     }
+
+    // Método para ser llamado cuando se selecciona esta pestaña
+    public void onPageSelected() {
+        Log.d(TAG, "onPageSelected() - IncidencesFragment seleccionado");
+        
+        // Refrescar todas las pestañas cuando se navega a esta sección
+        if (getView() != null && isAdded() && !isDetached() && isDepartmentInfoLoaded) {
+            Log.d(TAG, "Refrescando todas las pestañas de incidencias");
+            refreshAllTabs();
+        } else if (!isDepartmentInfoLoaded) {
+            Log.d(TAG, "Información del departamento aún no cargada, esperando...");
+            // Si la información del departamento no está cargada, intentar cargarla de nuevo
+            loadEmployeeInfoAndSetupTabs();
+        }
+    }
+    
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume() - IncidencesFragment visible");
+        
+        // Actualizar datos cuando el fragmento vuelve a ser visible
+        if (getView() != null && isAdded() && isDepartmentInfoLoaded) {
+            Log.d(TAG, "Refrescando datos en onResume");
+            refreshAllTabs();
+        }
+    }
 } 

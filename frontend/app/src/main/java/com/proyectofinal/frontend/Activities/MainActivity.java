@@ -30,6 +30,8 @@ import com.proyectofinal.frontend.Api.ApiClient;
 import com.proyectofinal.frontend.Api.DepartmentApiService;
 import com.proyectofinal.frontend.Adapters.MainPagerAdapter;
 import com.proyectofinal.frontend.Fragments.CreateWorkReportFragment;
+import com.proyectofinal.frontend.Fragments.HomeFragment;
+import com.proyectofinal.frontend.Fragments.IncidencesFragment;
 import com.proyectofinal.frontend.Fragments.ManageDepartmentsFragment;
 import com.proyectofinal.frontend.Fragments.ManageEmployeesFragment;
 import com.proyectofinal.frontend.Fragments.UserProfileFragment;
@@ -39,6 +41,8 @@ import com.proyectofinal.frontend.Fragments.WorkReportsFragment;
 import com.proyectofinal.frontend.Models.Department;
 import com.proyectofinal.frontend.R;
 import androidx.appcompat.widget.ActionMenuView;
+
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.List;
 
@@ -89,6 +93,9 @@ public class MainActivity extends AppCompatActivity {
         if (isAdmin) {
             checkIfDepartmentsExist();
         }
+        
+        // Inicializar Firebase Cloud Messaging
+        initializeFirebaseMessaging();
     }
     
     private void checkUserRole() {
@@ -169,12 +176,18 @@ public class MainActivity extends AppCompatActivity {
             int itemId = item.getItemId();
             if (itemId == R.id.nav_home) {
                 viewPager2.setCurrentItem(0, true);
+                updateToolbarTitle("Inicio");
+                // La notificación se hará automáticamente en onPageSelected del ViewPager2
                 return true;
             } else if (itemId == R.id.nav_incidents) {
                 viewPager2.setCurrentItem(1, true);
+                updateToolbarTitle("Incidencias");
+                // La notificación se hará automáticamente en onPageSelected del ViewPager2
                 return true;
             } else if (itemId == R.id.nav_work_reports) {
                 viewPager2.setCurrentItem(2, true);
+                updateToolbarTitle("Partes de Trabajo");
+                // La notificación se hará automáticamente en onPageSelected del ViewPager2
                 return true;
             }
             return false;
@@ -186,16 +199,24 @@ public class MainActivity extends AppCompatActivity {
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
                 Log.d("MainActivity", "Página seleccionada: " + position);
+                
+                // Actualizar BottomNavigationView y título del toolbar
                 switch (position) {
                     case 0:
                         bottomNavigationView.setSelectedItemId(R.id.nav_home);
+                        updateToolbarTitle("Inicio");
+                        Log.d("MainActivity", "Navegando a Home - notificando selección");
+                        notifyHomeFragmentSelected();
                         break;
                     case 1:
                         bottomNavigationView.setSelectedItemId(R.id.nav_incidents);
+                        updateToolbarTitle("Incidencias");
+                        Log.d("MainActivity", "Navegando a Incidences - notificando selección");
+                        notifyIncidencesFragmentSelected();
                         break;
                     case 2:
                         bottomNavigationView.setSelectedItemId(R.id.nav_work_reports);
-                        // Notificar al WorkReportsFragment que fue seleccionado
+                        updateToolbarTitle("Partes de Trabajo");
                         Log.d("MainActivity", "Navegando a WorkReports - notificando selección");
                         notifyWorkReportsFragmentSelected();
                         break;
@@ -205,6 +226,9 @@ public class MainActivity extends AppCompatActivity {
         
         // Establecer la página inicial (Home)
         viewPager2.setCurrentItem(0, false);
+        
+        // Establecer título inicial
+        updateToolbarTitle("Inicio");
     }
 
     @Override
@@ -614,7 +638,27 @@ public class MainActivity extends AppCompatActivity {
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(false);
             getSupportActionBar().setDisplayShowHomeEnabled(false);
-            getSupportActionBar().setTitle(""); // El título lo manejará cada fragmento
+            
+            // Restaurar el título según la página actual del ViewPager
+            if (viewPager2 != null) {
+                int currentPage = viewPager2.getCurrentItem();
+                switch (currentPage) {
+                    case 0:
+                        updateToolbarTitle("Inicio");
+                        break;
+                    case 1:
+                        updateToolbarTitle("Incidencias");
+                        break;
+                    case 2:
+                        updateToolbarTitle("Partes de Trabajo");
+                        break;
+                    default:
+                        updateToolbarTitle("Inicio");
+                        break;
+                }
+            } else {
+                updateToolbarTitle("Inicio");
+            }
         }
         
         // Limpiar el listener de navegación del toolbar
@@ -746,14 +790,12 @@ public class MainActivity extends AppCompatActivity {
     
     // Método simplificado - el refresh automático se maneja en WorkReportListFragment
     private void refreshWorkReportsData() {
-        Log.d("MainActivity", "refreshWorkReportsData() - confiando en refresh automático");
         // El WorkReportListFragment se refrescará automáticamente cuando se vuelva visible
         // No necesitamos lógica compleja aquí para evitar IllegalStateException
     }
     
     // Método simplificado para navegación
     private void refreshWorkReportsDataOnNavigation() {
-        Log.d("MainActivity", "refreshWorkReportsDataOnNavigation() - confiando en refresh automático");
         // El WorkReportListFragment se refrescará automáticamente cuando se vuelva visible
         // No necesitamos lógica compleja aquí para evitar IllegalStateException
     }
@@ -761,21 +803,138 @@ public class MainActivity extends AppCompatActivity {
     // Método para notificar al WorkReportsFragment que fue seleccionado
     private void notifyWorkReportsFragmentSelected() {
         try {
-            Log.d("MainActivity", "notifyWorkReportsFragmentSelected() iniciado");
-            
             // Buscar el WorkReportsFragment usando el FragmentManager
             List<Fragment> fragments = getSupportFragmentManager().getFragments();
             for (Fragment fragment : fragments) {
                 if (fragment instanceof WorkReportsFragment && fragment.isAdded()) {
-                    Log.d("MainActivity", "WorkReportsFragment encontrado, notificando selección");
                     ((WorkReportsFragment) fragment).onPageSelected();
+                    
+                    // También forzar refresh adicional con delay
+                    new Handler().postDelayed(() -> {
+                        if (fragment.isAdded() && !fragment.isDetached()) {
+                            ((WorkReportsFragment) fragment).forceRefresh();
+                        }
+                    }, 300);
                     return;
                 }
             }
-            
-            Log.w("MainActivity", "WorkReportsFragment no encontrado");
         } catch (Exception e) {
             Log.e("MainActivity", "Error al notificar selección de WorkReportsFragment", e);
         }
     }
+
+    // Método para notificar al HomeFragment que fue seleccionado
+    private void notifyHomeFragmentSelected() {
+        try {
+            // Buscar el HomeFragment usando el FragmentManager
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof HomeFragment && fragment.isAdded()) {
+                    ((HomeFragment) fragment).onPageSelected();
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error al notificar selección de HomeFragment", e);
+        }
+    }
+    
+    // Método para notificar al IncidencesFragment que fue seleccionado
+    private void notifyIncidencesFragmentSelected() {
+        try {
+            // Buscar el IncidencesFragment usando el FragmentManager
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof IncidencesFragment && fragment.isAdded()) {
+                    ((IncidencesFragment) fragment).onPageSelected();
+                    return;
+                }
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error al notificar selección de IncidencesFragment", e);
+        }
+    }
+    
+    // Método para actualizar el título del toolbar
+    private void updateToolbarTitle(String title) {
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle(title);
+        }
+    }
+    
+    // Método para inicializar Firebase Cloud Messaging
+    private void initializeFirebaseMessaging() {
+        // Solicitar permisos de notificación para Android 13+ (API 33+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
+                getPackageManager().PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+            }
+        }
+        
+        FirebaseMessaging.getInstance().getToken()
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("MainActivity", "Error obteniendo token FCM", task.getException());
+                        return;
+                    }
+
+                    // Obtener nuevo token FCM
+                    String token = task.getResult();
+
+                    // Guardar token localmente
+                    SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                    prefs.edit().putString("FCM_TOKEN", token).apply();
+
+                    // Enviar token al servidor
+                    sendTokenToServer(token);
+                });
+
+        // Suscribirse a temas generales si es necesario
+        FirebaseMessaging.getInstance().subscribeToTopic("general");
+     }
+     
+     @Override
+     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+         if (requestCode == 1001) {
+             if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
+                 Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
+             } else {
+                 Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
+             }
+         }
+     }
+     
+     // Método para enviar token FCM al servidor
+     private void sendTokenToServer(String fcmToken) {
+         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+         String userId = prefs.getString("USER_ID", "");
+         String jwtToken = prefs.getString("JWT_TOKEN", "");
+         
+         if (!userId.isEmpty() && !jwtToken.isEmpty()) {
+             // Crear request con información del dispositivo
+             String deviceInfo = android.os.Build.MODEL + " (" + android.os.Build.VERSION.RELEASE + ")";
+             
+             // Usar el servicio FCM del ApiClient
+             apiClient.getFCMApiService().registerFCMToken(
+                 "Bearer " + jwtToken, 
+                 new com.proyectofinal.frontend.Api.FCMApiService.FCMTokenRequest(userId, fcmToken, deviceInfo)
+             ).enqueue(new Callback<String>() {
+                 @Override
+                 public void onResponse(Call<String> call, Response<String> response) {
+                     if (!response.isSuccessful()) {
+                         Log.e("MainActivity", "Error registrando token FCM: " + response.code());
+                     }
+                 }
+                 
+                 @Override
+                 public void onFailure(Call<String> call, Throwable t) {
+                     Log.e("MainActivity", "Error de conexión registrando token FCM: " + t.getMessage());
+                 }
+             });
+         } else {
+             Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
+         }
+     }
 }

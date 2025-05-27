@@ -386,4 +386,37 @@ public class IncidenceService {
         public long getResolved() { return resolved; }
         public long getTotal() { return pending + inProgress + resolved; }
     }
+    
+    /**
+     * Obtiene los IDs de todos los empleados del departamento de incidencias
+     * (incluye empleados normales y jefe del departamento)
+     */
+    public List<String> getIncidencesDepartmentEmployeeIds() {
+        try {
+            logger.info("Obteniendo empleados del departamento de incidencias para notificaciones");
+            
+            // Buscar el departamento de incidencias
+            Department incidencesDepartment = departmentRepository.findByNameIgnoreCase(INCIDENCES_DEPARTMENT_NAME);
+            if (incidencesDepartment == null) {
+                logger.warn("No se encontró el departamento de incidencias");
+                return List.of();
+            }
+            
+            // Obtener todos los empleados del departamento
+            List<Employee> departmentEmployees = employeeRepository.findByDepartmentId(incidencesDepartment.getId());
+            
+            // Convertir a lista de userIds (para notificaciones FCM)
+            List<String> userIds = departmentEmployees.stream()
+                    .map(Employee::getUserId)
+                    .filter(userId -> userId != null && !userId.trim().isEmpty())
+                    .collect(Collectors.toList());
+            
+            logger.info("Encontrados {} empleados del departamento de incidencias", userIds.size());
+            return userIds;
+            
+        } catch (Exception e) {
+            logger.error("Error obteniendo empleados del departamento de incidencias", e);
+            return List.of();
+        }
+    }
 } 

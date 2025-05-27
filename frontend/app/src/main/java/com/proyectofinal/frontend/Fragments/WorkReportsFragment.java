@@ -93,8 +93,12 @@ public class WorkReportsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "onResume() - WorkReportsFragment visible");
-        // El refresh automático ahora se maneja en WorkReportListFragment
-        // No necesitamos hacer nada especial aquí
+        
+        // Actualizar datos cuando el fragmento vuelve a ser visible
+        if (getView() != null && isAdded() && isDepartmentInfoLoaded) {
+            Log.d(TAG, "Refrescando datos en onResume");
+            refreshAllTabs();
+        }
     }
 
     private void initializeViews(View view) {
@@ -177,76 +181,76 @@ public class WorkReportsFragment extends Fragment {
 
 
     public void refreshCurrentTab() {
-        Log.d(TAG, "refreshCurrentTab() - método simplificado");
-        // El refresh automático se maneja en WorkReportListFragment cuando se vuelve visible
-        // Solo loguear para depuración
+        Log.d(TAG, "refreshCurrentTab() - refrescando pestaña actual");
+        
+        if (pagerAdapter != null && viewPager != null) {
+            int currentPosition = viewPager.getCurrentItem();
+            Log.d(TAG, "Refrescando fragmento en posición: " + currentPosition);
+            pagerAdapter.refreshFragment(currentPosition);
+        } else {
+            Log.w(TAG, "pagerAdapter o viewPager es null");
+        }
     }
 
     public void refreshAllTabs() {
-        Log.d(TAG, "refreshAllTabs() - método simplificado");
-        // El refresh automático se maneja en WorkReportListFragment cuando se vuelve visible
-        // Solo loguear para depuración
+        Log.d(TAG, "refreshAllTabs() - refrescando todas las pestañas");
+        refreshAllTabsDirectly();
+    }
+    
+    private void refreshAllTabsDirectly() {
+        Log.d(TAG, "refreshAllTabsDirectly() - método directo de refresh");
+        
+        if (pagerAdapter != null) {
+            Log.d(TAG, "Usando método del adaptador para refrescar fragmentos");
+            pagerAdapter.refreshAllWorkReportFragments();
+        } else {
+            Log.w(TAG, "pagerAdapter es null, no se pueden refrescar los fragmentos");
+        }
     }
     
     // Método específico para refrescar después de crear un parte de trabajo
     public void refreshAfterWorkReportCreated() {
-        Log.d(TAG, "refreshAfterWorkReportCreated() - confiando en refresh automático");
-        // El WorkReportListFragment se refrescará automáticamente cuando se vuelva visible
-        // No necesitamos forzar nada aquí para evitar IllegalStateException
+        Log.d(TAG, "refreshAfterWorkReportCreated() - forzando refresh inmediato");
+        
+        // Forzar refresh inmediato después de crear un parte de trabajo
+        if (getView() != null && isAdded() && !isDetached()) {
+            new Handler().postDelayed(() -> {
+                if (isAdded() && !isDetached()) {
+                    Log.d(TAG, "Ejecutando refresh forzado después de crear parte");
+                    refreshAllTabsDirectly();
+                }
+            }, 500); // Delay más largo para asegurar que la creación se completó
+        }
+    }
+    
+    // Método público para forzar refresh desde MainActivity
+    public void forceRefresh() {
+        Log.d(TAG, "forceRefresh() - refresh forzado desde MainActivity");
+        
+        if (getView() != null && isAdded() && !isDetached()) {
+            refreshAllTabsDirectly();
+        }
     }
     
     // Método para ser llamado cuando se selecciona esta pestaña
     public void onPageSelected() {
         Log.d(TAG, "onPageSelected() - WorkReportsFragment seleccionado");
         
-        // Intentar notificar inmediatamente
-        if (tryNotifyWorkReportListFragment()) {
-            Log.d(TAG, "WorkReportListFragment notificado inmediatamente");
-            return;
-        }
-        
-        // Si no se encuentra, usar reintentos con delays
-        Log.d(TAG, "WorkReportListFragment no encontrado, iniciando reintentos");
-        retryNotifyWorkReportListFragment(0);
-    }
-    
-    private boolean tryNotifyWorkReportListFragment() {
-        if (pagerAdapter != null && viewPager != null) {
-            int currentPosition = viewPager.getCurrentItem();
-            Fragment currentFragment = getChildFragmentManager().findFragmentByTag("f" + currentPosition);
+        // Refrescar todas las pestañas cuando se navega a esta sección
+        if (getView() != null && isAdded() && !isDetached() && isDepartmentInfoLoaded) {
+            Log.d(TAG, "Refrescando todas las pestañas de work reports");
             
-            Log.d(TAG, "Buscando fragmento en posición " + currentPosition + ": " + 
-                  (currentFragment != null ? currentFragment.getClass().getSimpleName() : "null"));
-            
-            if (currentFragment instanceof WorkReportListFragment) {
-                Log.d(TAG, "WorkReportListFragment encontrado, llamando onPageSelected");
-                ((WorkReportListFragment) currentFragment).onPageSelected();
-                return true;
-            }
+            // Usar un pequeño delay para asegurar que todo esté listo
+            new Handler().postDelayed(() -> {
+                if (isAdded() && !isDetached()) {
+                    refreshAllTabsDirectly();
+                }
+            }, 100);
+        } else if (!isDepartmentInfoLoaded) {
+            Log.d(TAG, "Información del departamento aún no cargada, esperando...");
+            // Si la información del departamento no está cargada, intentar cargarla de nuevo
+            setupTabsBasedOnRole();
         }
-        return false;
     }
-    
-    private void retryNotifyWorkReportListFragment(int attempt) {
-        if (attempt >= 5) {
-            Log.w(TAG, "Se agotaron los intentos para notificar WorkReportListFragment");
-            return;
-        }
-        
-        Log.d(TAG, "Intento #" + (attempt + 1) + " para notificar WorkReportListFragment");
-        
-        // Intentar notificar
-        if (tryNotifyWorkReportListFragment()) {
-            Log.d(TAG, "WorkReportListFragment notificado en intento #" + (attempt + 1));
-            return;
-        }
-        
-        // Si no se encuentra, reintentar con delay incremental
-        int delay = 200 + (attempt * 200); // 200ms, 400ms, 600ms, 800ms, 1000ms
-        new Handler().postDelayed(() -> {
-            if (isAdded() && !isDetached()) {
-                retryNotifyWorkReportListFragment(attempt + 1);
-            }
-        }, delay);
-    }
+
 }

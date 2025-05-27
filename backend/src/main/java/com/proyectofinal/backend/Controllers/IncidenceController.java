@@ -4,6 +4,7 @@ import com.proyectofinal.backend.Models.Incidence;
 import com.proyectofinal.backend.Models.User;
 import com.proyectofinal.backend.Services.IncidenceService;
 import com.proyectofinal.backend.Services.UserService;
+import com.proyectofinal.backend.Services.FirebaseMessagingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class IncidenceController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private FirebaseMessagingService firebaseMessagingService;
 
     // **ENDPOINTS PARA EMPLEADOS DEL DEPARTAMENTO DE INCIDENCIAS**
 
@@ -228,6 +232,30 @@ public class IncidenceController {
                     request.getCreatedBy().trim()
             );
 
+            // Enviar notificación FCM si es de alta prioridad
+            if (Incidence.Priority.ALTA.equals(newIncidence.getPriority())) {
+                try {
+                    logger.info("Enviando notificación de incidencia de alta prioridad: {}", newIncidence.getTitle());
+                    
+                    // Obtener empleados del departamento de incidencias
+                    List<String> incidenceEmployeeIds = incidenceService.getIncidencesDepartmentEmployeeIds();
+                    
+                    if (!incidenceEmployeeIds.isEmpty()) {
+                        firebaseMessagingService.sendHighPriorityIncidenceNotification(
+                            incidenceEmployeeIds,
+                            newIncidence.getTitle(),
+                            newIncidence.getDescription()
+                        );
+                        logger.info("Notificación de alta prioridad enviada a {} empleados", incidenceEmployeeIds.size());
+                    } else {
+                        logger.warn("No se encontraron empleados del departamento de incidencias para notificar");
+                    }
+                } catch (Exception e) {
+                    logger.error("Error enviando notificación de incidencia de alta prioridad: {}", e.getMessage());
+                    // No fallar la creación de la incidencia por un error de notificación
+                }
+            }
+
             return ResponseEntity.status(HttpStatus.CREATED).body(newIncidence);
         } catch (Exception e) {
             logger.error("Error creando incidencia", e);
@@ -312,6 +340,30 @@ public class IncidenceController {
                     request.getPriority(),
                     currentUserId
             );
+
+            // Enviar notificación FCM si es de alta prioridad
+            if (Incidence.Priority.ALTA.equals(newIncidence.getPriority())) {
+                try {
+                    logger.info("Enviando notificación de incidencia de alta prioridad creada por empleado: {}", newIncidence.getTitle());
+                    
+                    // Obtener empleados del departamento de incidencias
+                    List<String> incidenceEmployeeIds = incidenceService.getIncidencesDepartmentEmployeeIds();
+                    
+                    if (!incidenceEmployeeIds.isEmpty()) {
+                        firebaseMessagingService.sendHighPriorityIncidenceNotification(
+                            incidenceEmployeeIds,
+                            newIncidence.getTitle(),
+                            newIncidence.getDescription()
+                        );
+                        logger.info("Notificación de alta prioridad enviada a {} empleados", incidenceEmployeeIds.size());
+                    } else {
+                        logger.warn("No se encontraron empleados del departamento de incidencias para notificar");
+                    }
+                } catch (Exception e) {
+                    logger.error("Error enviando notificación de incidencia de alta prioridad: {}", e.getMessage());
+                    // No fallar la creación de la incidencia por un error de notificación
+                }
+            }
 
             return ResponseEntity.status(HttpStatus.CREATED).body(newIncidence);
         } catch (Exception e) {

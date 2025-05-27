@@ -5,51 +5,73 @@ import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import com.google.firebase.cloud.FirestoreClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.annotation.PostConstruct;
-import java.io.FileInputStream;
+import jakarta.annotation.PostConstruct;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
 public class FirebaseConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(FirebaseConfig.class);
+
     @Value("${firebase.credentials.path:}")
     private String credentialsPath;
 
-    @Value("${firebase.project.id:proyecto-final-estech}")
+    @Value("${firebase.project.id:turnado-ab134}")
     private String projectId;
 
     @PostConstruct
-    public void initialize() {
+    public void initializeFirebase() {
         try {
-            InputStream serviceAccount;
-            
-            // Intentar cargar desde archivo local primero
-            try {
-                serviceAccount = new FileInputStream(credentialsPath);
-            } catch (Exception e) {
-                // Si no encuentra el archivo local, usar variable de entorno
-                serviceAccount = getClass().getClassLoader().getResourceAsStream("firebase-service-account.json");
-            }
-
-            if (serviceAccount != null) {
+            // Verificar si Firebase ya está inicializado
+            if (FirebaseApp.getApps().isEmpty()) {
+                
+                // Configuración usando variables de entorno o archivo de credenciales
+                String firebaseCredentials = System.getenv("FIREBASE_CREDENTIALS");
+                
+                GoogleCredentials credentials;
+                
+                if (firebaseCredentials != null && !firebaseCredentials.isEmpty()) {
+                    // Usar credenciales desde variable de entorno
+                    logger.info("Inicializando Firebase con credenciales desde variable de entorno");
+                    InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
+                    credentials = GoogleCredentials.fromStream(credentialsStream);
+                } else {
+                    // Usar credenciales desde archivo en classpath
+                    logger.info("Inicializando Firebase con credenciales desde archivo");
+                    InputStream serviceAccount = getClass().getClassLoader()
+                            .getResourceAsStream("firebase-service-account.json");
+                    
+                    if (serviceAccount == null) {
+                        logger.warn("No se encontró archivo firebase-service-account.json, usando credenciales por defecto");
+                        credentials = GoogleCredentials.getApplicationDefault();
+                    } else {
+                        credentials = GoogleCredentials.fromStream(serviceAccount);
+                    }
+                }
+                
                 FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+                        .setCredentials(credentials)
                         .setProjectId(projectId)
                         .build();
-
-                if (FirebaseApp.getApps().isEmpty()) {
-                    FirebaseApp.initializeApp(options);
-                }
+                
+                FirebaseApp.initializeApp(options);
+                logger.info("Firebase inicializado exitosamente");
+                
             } else {
-                System.err.println("Firebase credentials not found. Firebase features will be disabled.");
+                logger.info("Firebase ya está inicializado");
             }
+            
         } catch (IOException e) {
-            System.err.println("Error initializing Firebase: " + e.getMessage());
+            logger.error("Error inicializando Firebase: {}", e.getMessage());
+            throw new RuntimeException("Error inicializando Firebase", e);
         }
     }
 

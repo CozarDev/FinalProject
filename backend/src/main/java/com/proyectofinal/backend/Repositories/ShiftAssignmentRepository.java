@@ -5,6 +5,7 @@ import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.data.mongodb.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.Date;
 import java.util.List;
 
@@ -21,4 +22,7 @@ public interface ShiftAssignmentRepository extends MongoRepository<ShiftAssignme
     // Buscar asignaciones por departamento
     @Query("{'employeeId': {$in: ?0}}")
     List<ShiftAssignment> findByEmployeeIdIn(List<String> employeeIds);
+    
+    // Buscar asignaciones por fecha de inicio
+    List<ShiftAssignment> findByStartDate(LocalDate startDate);
 } 

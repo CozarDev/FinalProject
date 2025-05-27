@@ -8,18 +8,18 @@ public class WorkReport {
     private String employeeId;
     private String employeeName;
     private String employeeEmail;
-    private LocalDate reportDate;
+    private String reportDate;
     private String startTime;
     private String endTime;
     private Integer breakDuration;
     private String observations;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
+    private String createdAt;
+    private String updatedAt;
 
     // Constructores
     public WorkReport() {}
 
-    public WorkReport(String employeeId, LocalDate reportDate, String startTime, String endTime, 
+    public WorkReport(String employeeId, String reportDate, String startTime, String endTime, 
                      Integer breakDuration, String observations) {
         this.employeeId = employeeId;
         this.reportDate = reportDate;
@@ -62,12 +62,29 @@ public class WorkReport {
         this.employeeEmail = employeeEmail;
     }
 
-    public LocalDate getReportDate() {
+    public String getReportDate() {
         return reportDate;
     }
 
-    public void setReportDate(LocalDate reportDate) {
+    public void setReportDate(String reportDate) {
         this.reportDate = reportDate;
+    }
+    
+    // Método auxiliar para obtener LocalDate desde String
+    public LocalDate getReportDateAsLocalDate() {
+        if (reportDate != null && !reportDate.isEmpty()) {
+            try {
+                return LocalDate.parse(reportDate);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    // Método auxiliar para establecer desde LocalDate
+    public void setReportDate(LocalDate reportDate) {
+        this.reportDate = reportDate != null ? reportDate.toString() : null;
     }
 
     public String getStartTime() {
@@ -102,20 +119,54 @@ public class WorkReport {
         this.observations = observations;
     }
 
-    public LocalDateTime getCreatedAt() {
+    public String getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
+    
+    // Método auxiliar para obtener LocalDateTime desde String
+    public LocalDateTime getCreatedAtAsLocalDateTime() {
+        if (createdAt != null && !createdAt.isEmpty()) {
+            try {
+                return LocalDateTime.parse(createdAt);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    // Método auxiliar para establecer desde LocalDateTime
+    public void setCreatedAt(LocalDateTime createdAt) {
+        this.createdAt = createdAt != null ? createdAt.toString() : null;
+    }
 
-    public LocalDateTime getUpdatedAt() {
+    public String getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    public void setUpdatedAt(String updatedAt) {
         this.updatedAt = updatedAt;
+    }
+    
+    // Método auxiliar para obtener LocalDateTime desde String
+    public LocalDateTime getUpdatedAtAsLocalDateTime() {
+        if (updatedAt != null && !updatedAt.isEmpty()) {
+            try {
+                return LocalDateTime.parse(updatedAt);
+            } catch (Exception e) {
+                return null;
+            }
+        }
+        return null;
+    }
+    
+    // Método auxiliar para establecer desde LocalDateTime
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt != null ? updatedAt.toString() : null;
     }
 
     // Método auxiliar para calcular las horas trabajadas
