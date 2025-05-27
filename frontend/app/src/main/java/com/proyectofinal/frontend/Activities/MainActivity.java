@@ -18,6 +18,7 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -26,12 +27,15 @@ import com.getkeepsafe.taptargetview.TapTargetView;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.proyectofinal.frontend.Api.ApiClient;
+import com.proyectofinal.frontend.Api.DepartmentApiService;
 import com.proyectofinal.frontend.Adapters.MainPagerAdapter;
+import com.proyectofinal.frontend.Fragments.CreateWorkReportFragment;
 import com.proyectofinal.frontend.Fragments.ManageDepartmentsFragment;
 import com.proyectofinal.frontend.Fragments.ManageEmployeesFragment;
 import com.proyectofinal.frontend.Fragments.UserProfileFragment;
 import com.proyectofinal.frontend.Fragments.ManageShiftTypesFragment;
 import com.proyectofinal.frontend.Fragments.ManageShiftAssignmentsFragment;
+import com.proyectofinal.frontend.Fragments.WorkReportsFragment;
 import com.proyectofinal.frontend.Models.Department;
 import com.proyectofinal.frontend.R;
 import androidx.appcompat.widget.ActionMenuView;
@@ -181,6 +185,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
+                Log.d("MainActivity", "Página seleccionada: " + position);
                 switch (position) {
                     case 0:
                         bottomNavigationView.setSelectedItemId(R.id.nav_home);
@@ -190,6 +195,9 @@ public class MainActivity extends AppCompatActivity {
                         break;
                     case 2:
                         bottomNavigationView.setSelectedItemId(R.id.nav_work_reports);
+                        // Notificar al WorkReportsFragment que fue seleccionado
+                        Log.d("MainActivity", "Navegando a WorkReports - notificando selección");
+                        notifyWorkReportsFragmentSelected();
                         break;
                 }
             }
@@ -597,10 +605,10 @@ public class MainActivity extends AppCompatActivity {
         // Ocultar el contenedor de fragmentos
         if (fragmentContainer != null) fragmentContainer.setVisibility(View.GONE);
         
-        // Volver a la página de inicio
-        if (viewPager2 != null) {
-            viewPager2.setCurrentItem(0, true);
-        }
+        // Mantener la página actual en lugar de volver siempre al inicio
+        // if (viewPager2 != null) {
+        //     viewPager2.setCurrentItem(0, true);
+        // }
         
         // Restaurar estado del ActionBar
         if (getSupportActionBar() != null) {
@@ -608,6 +616,9 @@ public class MainActivity extends AppCompatActivity {
             getSupportActionBar().setDisplayShowHomeEnabled(false);
             getSupportActionBar().setTitle(""); // El título lo manejará cada fragmento
         }
+        
+        // Limpiar el listener de navegación del toolbar
+        materialToolbar.setNavigationOnClickListener(null);
     }
 
     private void logout() {
@@ -639,6 +650,58 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    public void showCreateWorkReportFragment() {
+        // Ocultar el ViewPager y mostrar el contenedor de fragmentos
+        viewPager2.setVisibility(View.GONE);
+        fragmentContainer.setVisibility(View.VISIBLE);
+        
+        // Ocultar también el BottomNavigationView
+        bottomNavigationView.setVisibility(View.GONE);
+        
+        // Configurar botón de retroceso en la toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Nuevo Parte de Trabajo");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        materialToolbar.setNavigationOnClickListener(v -> onBackPressed());
+        
+        // Crear una instancia del fragmento
+        CreateWorkReportFragment fragment = new CreateWorkReportFragment();
+        
+        // Configurar el listener para manejar eventos del fragmento
+        fragment.setOnWorkReportCreatedListener(new CreateWorkReportFragment.OnWorkReportCreatedListener() {
+            @Override
+            public void onWorkReportCreated() {
+                // Volver atrás y navegar a la pestaña de partes de trabajo
+                onBackPressed();
+                // Navegar a la pestaña de partes y notificar selección
+                new Handler().postDelayed(() -> {
+                    if (viewPager2 != null) {
+                        viewPager2.setCurrentItem(2, true); // Índice 2 = WorkReports
+                        Log.d("MainActivity", "Navegando a WorkReports después de crear parte");
+                        
+                        // Dar un poco más de tiempo y luego notificar la selección
+                        new Handler().postDelayed(() -> {
+                            notifyWorkReportsFragmentSelected();
+                        }, 200);
+                    }
+                }, 300);
+            }
+
+            @Override
+            public void onCancel() {
+                onBackPressed(); // Volver atrás cuando se cancela
+            }
+        });
+        
+        // Reemplazar el contenido actual con el fragmento
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null) // Permitir volver atrás con el botón atrás
+                .commit();
+    }
+
     private void clearSessionAndRedirect() {
         // Limpiar datos de sesión
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
@@ -654,9 +717,65 @@ public class MainActivity extends AppCompatActivity {
         finish();
     }
     
-    // Interfaz para la API de Departamentos (sólo para esta actividad)
-    private interface DepartmentApiService {
-        @retrofit2.http.GET("departments")
-        Call<List<Department>> getAllDepartments();
+    // Método para reemplazar el fragmento actual con otro (usado para detalles de incidencias)
+    public void replaceFragment(Fragment fragment) {
+        Log.d("MainActivity", "Reemplazando fragmento: " + fragment.getClass().getSimpleName());
+        
+        // Ocultar ViewPager y BottomNavigation
+        viewPager2.setVisibility(View.GONE);
+        bottomNavigationView.setVisibility(View.GONE);
+        
+        // Mostrar el contenedor de fragmentos
+        fragmentContainer.setVisibility(View.VISIBLE);
+        
+        // Configurar botón de retroceso en la toolbar
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setTitle("Detalles de Incidencia");
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowHomeEnabled(true);
+        }
+        materialToolbar.setNavigationOnClickListener(v -> onBackPressed());
+        
+        // Reemplazar el fragmento
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, fragment)
+                .addToBackStack(null)
+                .commit();
+    }
+    
+    // Método simplificado - el refresh automático se maneja en WorkReportListFragment
+    private void refreshWorkReportsData() {
+        Log.d("MainActivity", "refreshWorkReportsData() - confiando en refresh automático");
+        // El WorkReportListFragment se refrescará automáticamente cuando se vuelva visible
+        // No necesitamos lógica compleja aquí para evitar IllegalStateException
+    }
+    
+    // Método simplificado para navegación
+    private void refreshWorkReportsDataOnNavigation() {
+        Log.d("MainActivity", "refreshWorkReportsDataOnNavigation() - confiando en refresh automático");
+        // El WorkReportListFragment se refrescará automáticamente cuando se vuelva visible
+        // No necesitamos lógica compleja aquí para evitar IllegalStateException
+    }
+    
+    // Método para notificar al WorkReportsFragment que fue seleccionado
+    private void notifyWorkReportsFragmentSelected() {
+        try {
+            Log.d("MainActivity", "notifyWorkReportsFragmentSelected() iniciado");
+            
+            // Buscar el WorkReportsFragment usando el FragmentManager
+            List<Fragment> fragments = getSupportFragmentManager().getFragments();
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof WorkReportsFragment && fragment.isAdded()) {
+                    Log.d("MainActivity", "WorkReportsFragment encontrado, notificando selección");
+                    ((WorkReportsFragment) fragment).onPageSelected();
+                    return;
+                }
+            }
+            
+            Log.w("MainActivity", "WorkReportsFragment no encontrado");
+        } catch (Exception e) {
+            Log.e("MainActivity", "Error al notificar selección de WorkReportsFragment", e);
+        }
     }
 }

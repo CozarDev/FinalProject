@@ -40,6 +40,9 @@ public class DataInitializer implements CommandLineRunner {
         // 2. Inicializar departamento de Incidencias
         initializeIncidencesDepartment();
         
+        // 3. Corregir roles de usuarios existentes
+        fixUserRoles();
+        
         logger.info("✅ Inicialización de datos completada exitosamente.");
     }
 
@@ -110,6 +113,25 @@ public class DataInitializer implements CommandLineRunner {
             
         } catch (Exception e) {
             logger.error("❌ Error al inicializar el departamento de Incidencias: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Corrige los roles de usuarios existentes que tengan EMPLEADO en lugar de EMPLOYEE
+     */
+    private void fixUserRoles() {
+        try {
+            // Verificar y corregir roles de usuarios existentes
+            Iterable<User> users = userRepository.findAll();
+            for (User user : users) {
+                if ("EMPLEADO".equals(user.getRole())) {
+                    user.setRole("EMPLOYEE");
+                    userRepository.save(user);
+                    logger.info("✅ Usuario {} actualizado exitosamente.", user.getUsername());
+                }
+            }
+        } catch (Exception e) {
+            logger.error("❌ Error al corregir los roles de usuarios: {}", e.getMessage(), e);
         }
     }
 } 

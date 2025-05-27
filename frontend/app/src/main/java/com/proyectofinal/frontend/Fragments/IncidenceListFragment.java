@@ -124,6 +124,13 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     private void loadData() {
         showLoading(true);
         
+        // Validar que tabType no sea null
+        if (tabType == null) {
+            Log.e(TAG, "tabType es null, no se puede cargar datos");
+            handleErrorResponse("Error de configuración: tipo de pestaña no definido");
+            return;
+        }
+        
         switch (tabType) {
             case ALL_INCIDENCES:
                 // Solo admin y jefe de incidencias pueden ver todas
@@ -308,22 +315,41 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     private void showLoading(boolean show) {
-        swipeRefreshLayout.setRefreshing(show);
-        progressIndicator.setVisibility(show ? View.VISIBLE : View.GONE);
+        if (swipeRefreshLayout != null) {
+            swipeRefreshLayout.setRefreshing(show);
+        }
+        if (progressIndicator != null) {
+            progressIndicator.setVisibility(show ? View.VISIBLE : View.GONE);
+        }
     }
 
     private void showContent() {
-        recyclerView.setVisibility(View.VISIBLE);
-        emptyStateLayout.setVisibility(View.GONE);
+        if (recyclerView != null) {
+            recyclerView.setVisibility(View.VISIBLE);
+        }
+        if (emptyStateLayout != null) {
+            emptyStateLayout.setVisibility(View.GONE);
+        }
     }
 
     private void showEmptyState(String message) {
-        recyclerView.setVisibility(View.GONE);
-        emptyStateLayout.setVisibility(View.VISIBLE);
-        emptyStateText.setText(message);
+        if (recyclerView != null) {
+            recyclerView.setVisibility(View.GONE);
+        }
+        if (emptyStateLayout != null) {
+            emptyStateLayout.setVisibility(View.VISIBLE);
+        }
+        if (emptyStateText != null) {
+            emptyStateText.setText(message);
+        }
     }
 
     private String getEmptyMessage() {
+        // Validar que tabType no sea null
+        if (tabType == null) {
+            return "No hay incidencias disponibles";
+        }
+        
         switch (tabType) {
             case PENDING_INCIDENCES:
                 return "No hay incidencias pendientes";
@@ -440,9 +466,17 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
         }
     }
 
+
+
     // **MÉTODOS PÚBLICOS PARA NOTIFICACIONES EXTERNAS**
 
     public void onIncidenceCreated(Incidence newIncidence) {
+        // Verificar que el fragmento esté completamente inicializado
+        if (adapter == null || tabType == null) {
+            Log.w(TAG, "Fragmento no inicializado completamente, ignorando notificación de incidencia creada");
+            return;
+        }
+        
         if (shouldShowIncidence(newIncidence)) {
             adapter.addIncidence(newIncidence);
             showContent();
@@ -450,6 +484,12 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     public void onIncidenceUpdated(Incidence updatedIncidence) {
+        // Verificar que el fragmento esté completamente inicializado
+        if (adapter == null || tabType == null) {
+            Log.w(TAG, "Fragmento no inicializado completamente, ignorando notificación de incidencia actualizada");
+            return;
+        }
+        
         if (shouldShowIncidence(updatedIncidence)) {
             adapter.updateIncidence(updatedIncidence);
         } else {
@@ -458,6 +498,12 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     public void onIncidenceRemoved(Incidence incidence) {
+        // Verificar que el fragmento esté completamente inicializado
+        if (adapter == null) {
+            Log.w(TAG, "Fragmento no inicializado completamente, ignorando notificación de incidencia eliminada");
+            return;
+        }
+        
         adapter.removeIncidence(incidence);
     }
 
@@ -466,6 +512,12 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     private boolean shouldShowIncidence(Incidence incidence) {
+        // Validar que tabType no sea null para evitar NullPointerException
+        if (tabType == null) {
+            Log.w(TAG, "tabType es null, mostrando incidencia por defecto");
+            return true;
+        }
+        
         switch (tabType) {
             case PENDING_INCIDENCES:
                 return incidence.getStatus() == Incidence.Status.PENDIENTE;

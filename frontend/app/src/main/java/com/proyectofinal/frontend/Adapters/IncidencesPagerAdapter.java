@@ -145,12 +145,40 @@ public class IncidencesPagerAdapter extends FragmentStateAdapter {
      * Refresca todas las pestañas
      */
     public void refreshAllTabs() {
-        for (Fragment fragment : fragments) {
-            if (fragment instanceof IncidenceListFragment) {
-                ((IncidenceListFragment) fragment).refreshData();
-            } else if (fragment instanceof IncidenceStatsFragment) {
-                ((IncidenceStatsFragment) fragment).refreshData();
+        try {
+            for (Fragment fragment : fragments) {
+                if (fragment instanceof IncidenceListFragment) {
+                    ((IncidenceListFragment) fragment).refreshData();
+                } else if (fragment instanceof IncidenceStatsFragment) {
+                    ((IncidenceStatsFragment) fragment).refreshData();
+                }
             }
+        } catch (Exception e) {
+            android.util.Log.e("IncidencesPagerAdapter", "Error refrescando pestañas", e);
+        }
+    }
+    
+    /**
+     * Actualiza las pestañas dinámicamente (para empleados del departamento de incidencias)
+     */
+    public void updateTabs(List<TabInfo> newTabs) {
+        if (newTabs == null || newTabs.isEmpty()) {
+            return;
+        }
+        
+        try {
+            tabs.clear();
+            tabs.addAll(newTabs);
+            
+            fragments.clear();
+            for (TabInfo tab : tabs) {
+                fragments.add(createFragmentForTab(tab));
+            }
+            
+            notifyDataSetChanged();
+        } catch (Exception e) {
+            // Log del error pero no crashear
+            android.util.Log.e("IncidencesPagerAdapter", "Error actualizando pestañas", e);
         }
     }
 
@@ -204,5 +232,12 @@ public class IncidencesPagerAdapter extends FragmentStateAdapter {
         
         // Estadísticas
         STATS
+    }
+
+    public String getTabTitle(int position) {
+        if (position < tabs.size()) {
+            return tabs.get(position).getTitle();
+        }
+        return "";
     }
 } 

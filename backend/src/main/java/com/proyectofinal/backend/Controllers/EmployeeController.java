@@ -147,7 +147,7 @@ public class EmployeeController {
         User newUser = new User();
         newUser.setUsername(username);
         newUser.setPassword(passwordEncoder.encode(password));
-        newUser.setRole("EMPLEADO"); // Asignar rol de empleado por defecto
+        newUser.setRole("EMPLOYEE"); // Asignar rol de empleado por defecto
         userRepository.save(newUser);
 
         // Asignar el ID del usuario al empleado

@@ -66,11 +66,7 @@ public interface IncidenceRepository extends MongoRepository<Incidence, String> 
     @Query("{ 'createdBy': { $in: ?0 } }")
     List<Incidence> findByCreatedByInOrderByCreatedAtDesc(List<String> employeeIds);
     
-    /**
-     * Obtener incidencias pendientes creadas por empleados de un departamento
-     */
-    @Query("{ 'createdBy': { $in: ?0 }, 'status': ?1 }")
-    List<Incidence> findByCreatedByInAndStatus(List<String> employeeIds, Incidence.Status status);
+
     
     // **CONSULTAS ESTADÍSTICAS**
     

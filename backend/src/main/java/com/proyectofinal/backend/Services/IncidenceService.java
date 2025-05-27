@@ -279,24 +279,44 @@ public class IncidenceService {
     /**
      * Verifica si un empleado pertenece al departamento de incidencias
      */
-    public boolean isIncidencesDepartmentEmployee(String employeeId) {
+    public boolean isIncidencesDepartmentEmployee(String userId) {
         try {
-            Optional<Employee> optionalEmployee = employeeRepository.findById(employeeId);
-            if (optionalEmployee.isEmpty()) {
+            // Buscar empleado por userId
+            List<Employee> employees = employeeRepository.findAll();
+            Employee employee = null;
+            for (Employee emp : employees) {
+                if (emp.getUserId() != null && emp.getUserId().equals(userId)) {
+                    employee = emp;
+                    break;
+                }
+            }
+            
+            if (employee == null) {
+                logger.debug("No se encontró empleado con userId: {}", userId);
                 return false;
             }
             
-            Employee employee = optionalEmployee.get();
+            if (employee.getDepartmentId() == null) {
+                logger.debug("Empleado {} no tiene departamento asignado", employee.getId());
+                return false;
+            }
+            
             Optional<Department> optionalDepartment = departmentRepository.findById(employee.getDepartmentId());
             if (optionalDepartment.isEmpty()) {
+                logger.debug("Departamento {} no encontrado", employee.getDepartmentId());
                 return false;
             }
             
             Department department = optionalDepartment.get();
-            return INCIDENCES_DEPARTMENT_NAME.equalsIgnoreCase(department.getName());
+            boolean isIncidencesDept = INCIDENCES_DEPARTMENT_NAME.equalsIgnoreCase(department.getName());
+            
+            logger.debug("Usuario {} - Empleado: {}, Departamento: {}, Es dept. incidencias: {}", 
+                        userId, employee.getId(), department.getName(), isIncidencesDept);
+            
+            return isIncidencesDept;
             
         } catch (Exception e) {
-            logger.error("Error verificando si empleado {} pertenece al departamento de incidencias", employeeId, e);
+            logger.error("Error verificando si usuario {} pertenece al departamento de incidencias", userId, e);
             return false;
         }
     }
@@ -304,12 +324,32 @@ public class IncidenceService {
     /**
      * Verifica si un empleado es jefe del departamento de incidencias
      */
-    public boolean isIncidencesDepartmentManager(String employeeId) {
+    public boolean isIncidencesDepartmentManager(String userId) {
         try {
+            // Buscar empleado por userId
+            List<Employee> employees = employeeRepository.findAll();
+            Employee employee = null;
+            for (Employee emp : employees) {
+                if (emp.getUserId() != null && emp.getUserId().equals(userId)) {
+                    employee = emp;
+                    break;
+                }
+            }
+            
+            if (employee == null) {
+                logger.debug("No se encontró empleado con userId: {}", userId);
+                return false;
+            }
+            
             Department incidencesDepartment = departmentRepository.findByNameIgnoreCase(INCIDENCES_DEPARTMENT_NAME);
-            return incidencesDepartment != null && employeeId.equals(incidencesDepartment.getManagerId());
+            boolean isManager = incidencesDepartment != null && employee.getId().equals(incidencesDepartment.getManagerId());
+            
+            logger.debug("Usuario {} - Empleado: {}, Es jefe dept. incidencias: {}", 
+                        userId, employee.getId(), isManager);
+            
+            return isManager;
         } catch (Exception e) {
-            logger.error("Error verificando si empleado {} es jefe del departamento de incidencias", employeeId, e);
+            logger.error("Error verificando si usuario {} es jefe del departamento de incidencias", userId, e);
             return false;
         }
     }

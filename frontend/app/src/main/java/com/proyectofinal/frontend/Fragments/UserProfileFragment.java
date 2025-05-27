@@ -225,8 +225,8 @@ public class UserProfileFragment extends Fragment {
                 case "DEPARTMENT_HEAD":
                     formattedRole = "Jefe de Departamento";
                     break;
-                case "EMPLEADO":
-                    formattedRole = "Empleado";
+                            case "EMPLOYEE":
+                formattedRole = "Empleado";
                     break;
                 default:
                     formattedRole = role;

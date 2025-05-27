@@ -10,11 +10,15 @@ import java.security.Key;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import javax.crypto.spec.SecretKeySpec;
+import java.nio.charset.StandardCharsets;
 
 @Service
 public class JWTService {
 
-    private final Key key = Keys.secretKeyFor(SignatureAlgorithm.HS256);
+    // Usar una clave fija para evitar invalidar tokens al reiniciar el servidor
+    private static final String SECRET_KEY = "mySecretKeyForJWTTokenGenerationThatIsLongEnoughForHS256Algorithm";
+    private final Key key = new SecretKeySpec(SECRET_KEY.getBytes(StandardCharsets.UTF_8), SignatureAlgorithm.HS256.getJcaName());
     private final long EXPIRATION_TIME = 86400000; // 1 día
 
     // Genera un token JWT para un usuario con su rol

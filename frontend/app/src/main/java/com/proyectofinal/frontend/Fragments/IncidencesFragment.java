@@ -3,6 +3,7 @@ package com.proyectofinal.frontend.Fragments;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.tabs.TabLayout;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.proyectofinal.frontend.Activities.MainActivity;
 import com.proyectofinal.frontend.Adapters.IncidenceAdapter;
 import com.proyectofinal.frontend.Adapters.IncidencesPagerAdapter;
 import com.proyectofinal.frontend.Models.Employee;
@@ -133,8 +135,19 @@ public class IncidencesFragment extends Fragment {
                     Employee employee = response.body();
                     currentDepartmentId = employee.getDepartmentId();
                     
-                    // Obtener nombre del departamento
-                    loadDepartmentInfo(employee.getDepartmentId());
+                    // Si el departmentId es el del departamento de incidencias, configurar directamente
+                    // ID conocido del departamento de incidencias: 6830c77cdc74487c0c3436f6
+                    if ("6830c77cdc74487c0c3436f6".equals(currentDepartmentId)) {
+                        currentDepartmentName = "Incidencias";
+                        checkIfIncidencesDepartmentEmployee();
+                        setupTabsBasedOnRole();
+                        setupFloatingActionButton();
+                        isDepartmentInfoLoaded = true;
+                        Log.d(TAG, "Empleado del departamento de incidencias detectado directamente");
+                    } else {
+                        // Intentar obtener nombre del departamento
+                        loadDepartmentInfo(employee.getDepartmentId());
+                    }
                     
                 } else {
                     Log.e(TAG, "Error obteniendo información del empleado: " + response.code());
@@ -197,9 +210,12 @@ public class IncidencesFragment extends Fragment {
         setupTabsBasedOnRole();
         setupFloatingActionButton();
         
-        Toast.makeText(requireContext(), 
-                      "No se pudo cargar información del departamento", 
-                      Toast.LENGTH_SHORT).show();
+        // Comentado el toast molesto - es normal que algunos usuarios no tengan departamento
+        // Toast.makeText(requireContext(), 
+        //               "No se pudo cargar información del departamento", 
+        //               Toast.LENGTH_SHORT).show();
+        
+        Log.d(TAG, "Configurado como empleado sin departamento específico");
     }
 
     private void setupTabsBasedOnRole() {
@@ -228,6 +244,11 @@ public class IncidencesFragment extends Fragment {
         
         Log.d(TAG, "Configuradas " + tabs.size() + " pestañas para rol: " + userRole + 
                   " en departamento: " + currentDepartmentName);
+        
+        // Para empleados del departamento de incidencias, verificar dinámicamente las pestañas
+        if (isIncidencesDepartmentEmployee) {
+            checkAndUpdateIncidenceEmployeeTabs();
+        }
     }
 
     // ADMIN: Todas las funcionalidades + crear y eliminar cualquier incidencia
@@ -246,11 +267,11 @@ public class IncidencesFragment extends Fragment {
         tabs.add(new IncidencesPagerAdapter.TabInfo("📊 Estadísticas", IncidencesPagerAdapter.TabType.STATS));
     }
 
-    // Empleados departamento Incidencias: Ver pendientes ordenadas por prioridad, aceptar incidencias, resolver asignadas
+    // Empleados departamento Incidencias: Comportamiento dinámico según asignaciones
     private void setupIncidenceEmployeeTabs(List<IncidencesPagerAdapter.TabInfo> tabs) {
+        // Por defecto, mostrar solo pendientes
+        // La lógica dinámica se manejará después de crear el adaptador
         tabs.add(new IncidencesPagerAdapter.TabInfo("⏳ Pendientes", IncidencesPagerAdapter.TabType.PENDING_INCIDENCES));
-        tabs.add(new IncidencesPagerAdapter.TabInfo("🔧 Mis Asignadas", IncidencesPagerAdapter.TabType.MY_ASSIGNED_INCIDENCES));
-        tabs.add(new IncidencesPagerAdapter.TabInfo("✅ Resueltas", IncidencesPagerAdapter.TabType.RESOLVED_INCIDENCES));
     }
 
     // Jefes otros departamentos: Crear incidencias, ver suyas y de empleados de su departamento, eliminar pendientes
@@ -340,6 +361,8 @@ public class IncidencesFragment extends Fragment {
                   ", Es jefe de incidencias: " + isIncidencesDepartmentManager);
     }
 
+
+
     private IncidenceAdapter.UserRole getUserRole() {
         if ("ADMIN".equals(userRole)) {
             return IncidenceAdapter.UserRole.ADMIN;
@@ -362,8 +385,34 @@ public class IncidencesFragment extends Fragment {
     }
 
     public void refreshAllTabs() {
-        if (pagerAdapter != null) {
-            pagerAdapter.refreshAllTabs();
+        try {
+            Log.d(TAG, "Iniciando actualización de todas las pestañas");
+            
+            if (pagerAdapter != null) {
+                pagerAdapter.refreshAllTabs();
+                Log.d(TAG, "Pestañas actualizadas exitosamente");
+            } else {
+                Log.w(TAG, "pagerAdapter es null, no se pueden actualizar las pestañas");
+            }
+            
+            // Para empleados del departamento de incidencias, también verificar pestañas dinámicas
+            if (isIncidencesDepartmentEmployee && isDepartmentInfoLoaded) {
+                Log.d(TAG, "Verificando pestañas dinámicas para empleado de incidencias");
+                // Usar un pequeño delay para evitar conflictos
+                new Handler().postDelayed(() -> {
+                    try {
+                        checkAndUpdateIncidenceEmployeeTabs();
+                    } catch (Exception e) {
+                        Log.e(TAG, "Error verificando pestañas dinámicas", e);
+                    }
+                }, 500);
+            }
+            
+        } catch (Exception e) {
+            Log.e(TAG, "Error al refrescar pestañas", e);
+            if (getContext() != null) {
+                Toast.makeText(getContext(), "Error al actualizar. Intenta de nuevo.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 
@@ -372,6 +421,129 @@ public class IncidencesFragment extends Fragment {
         if (pagerAdapter != null) {
             pagerAdapter.notifyIncidenceUpdated(updatedIncidence);
         }
+        
+        // Si es empleado del departamento de incidencias y la incidencia está EN_CURSO y asignada a él
+        if (isIncidencesDepartmentEmployee && 
+            updatedIncidence.getStatus() == Incidence.Status.EN_CURSO && 
+            currentUserId.equals(updatedIncidence.getAssignedTo())) {
+            
+            // Mostrar los detalles de la incidencia aceptada
+            showIncidenceDetail(updatedIncidence.getId());
+        } else if (isIncidencesDepartmentEmployee) {
+            // Para otros casos, refrescar pestañas dinámicamente
+            refreshTabsForIncidenceEmployee();
+        }
+    }
+    
+    // Método para mostrar los detalles de una incidencia
+    private void showIncidenceDetail(String incidenceId) {
+        Log.d(TAG, "Mostrando detalles de incidencia: " + incidenceId);
+        
+        IncidenceDetailFragment detailFragment = IncidenceDetailFragment.newInstance(incidenceId);
+        
+        // Configurar listener para cuando se resuelva la incidencia
+        detailFragment.setOnIncidenceResolvedListener(() -> {
+            Log.d(TAG, "Incidencia resuelta, volviendo a vista de pendientes");
+            // Refrescar las pestañas para volver a mostrar pendientes
+            refreshTabsForIncidenceEmployee();
+        });
+        
+        // Navegar al fragmento de detalles
+        if (getActivity() instanceof MainActivity) {
+            ((MainActivity) getActivity()).replaceFragment(detailFragment);
+        }
+    }
+    
+    // Método para verificar y actualizar pestañas dinámicamente para empleados de incidencias
+    private void checkAndUpdateIncidenceEmployeeTabs() {
+        if (!isIncidencesDepartmentEmployee || pagerAdapter == null) {
+            return;
+        }
+        
+        // Obtener incidencias asignadas al empleado actual
+        incidenceApiService.getAssignedIncidences(new IncidenceApiService.IncidenceListCallback() {
+            @Override
+            public void onSuccess(List<com.proyectofinal.frontend.Models.Incidence> assignedIncidences) {
+                // Filtrar incidencias en progreso
+                List<com.proyectofinal.frontend.Models.Incidence> inProgressIncidences = assignedIncidences.stream()
+                        .filter(incidence -> "EN_PROCESO".equals(incidence.getStatus()))
+                        .collect(java.util.stream.Collectors.toList());
+                
+                if (getActivity() != null) {
+                    getActivity().runOnUiThread(() -> {
+                        List<IncidencesPagerAdapter.TabInfo> newTabs = new ArrayList<>();
+                        
+                        if (inProgressIncidences.isEmpty()) {
+                            // No tiene incidencias asignadas en progreso - mostrar solo pendientes
+                            newTabs.add(new IncidencesPagerAdapter.TabInfo("⏳ Pendientes", IncidencesPagerAdapter.TabType.PENDING_INCIDENCES));
+                        } else {
+                            // Tiene incidencias en progreso - mostrar solo sus asignadas
+                            newTabs.add(new IncidencesPagerAdapter.TabInfo("🔧 Mis Asignadas", IncidencesPagerAdapter.TabType.MY_ASSIGNED_INCIDENCES));
+                        }
+                        
+                        // Actualizar el adaptador solo si las pestañas han cambiado
+                        updateTabsIfChanged(newTabs);
+                    });
+                }
+            }
+            
+            @Override
+            public void onError(String error) {
+                Log.e(TAG, "Error obteniendo incidencias asignadas: " + error);
+                // En caso de error, mantener las pestañas actuales
+            }
+        });
+    }
+    
+    // Método para actualizar pestañas solo si han cambiado
+    private void updateTabsIfChanged(List<IncidencesPagerAdapter.TabInfo> newTabs) {
+        if (pagerAdapter == null || newTabs.isEmpty()) {
+            return;
+        }
+        
+        // Verificar si las pestañas han cambiado
+        boolean tabsChanged = false;
+        if (pagerAdapter.getItemCount() != newTabs.size()) {
+            tabsChanged = true;
+        } else {
+            // Comparar títulos de pestañas
+            for (int i = 0; i < newTabs.size(); i++) {
+                String currentTabTitle = pagerAdapter.getTabTitle(i);
+                String newTabTitle = newTabs.get(i).getTitle();
+                if (!newTabTitle.equals(currentTabTitle)) {
+                    tabsChanged = true;
+                    break;
+                }
+            }
+        }
+        
+        // Solo actualizar si las pestañas han cambiado
+        if (tabsChanged) {
+            Log.d(TAG, "Actualizando pestañas dinámicamente para empleado de incidencias");
+            
+            try {
+                // Actualizar el adaptador con las nuevas pestañas
+                pagerAdapter.updateTabs(newTabs);
+                
+                // Reconfigurar TabLayout con ViewPager2
+                new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+                    if (position < newTabs.size()) {
+                        tab.setText(newTabs.get(position).getTitle());
+                    }
+                }).attach();
+                
+                Log.d(TAG, "Pestañas actualizadas exitosamente");
+            } catch (Exception e) {
+                Log.e(TAG, "Error actualizando pestañas dinámicamente", e);
+            }
+        } else {
+            Log.d(TAG, "Las pestañas no han cambiado, no es necesario actualizar");
+        }
+    }
+    
+    // Método para refrescar las pestañas dinámicamente para empleados de incidencias
+    private void refreshTabsForIncidenceEmployee() {
+        checkAndUpdateIncidenceEmployeeTabs();
     }
 
     // Método público para eliminar una incidencia desde otros fragmentos
@@ -380,6 +552,8 @@ public class IncidencesFragment extends Fragment {
             pagerAdapter.notifyIncidenceRemoved(incidence);
         }
     }
+
+
     
     // **MÉTODO TEMPORAL PARA DEBUG**
     private void testDebugAuth() {

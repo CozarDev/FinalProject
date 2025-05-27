@@ -24,4 +24,12 @@
     <color name="colorWarning">#F39C12</color>
     <color name="colorError">#E74C3C</color>
     <color name="colorInfo">#3498DB</color>
+    
+    <!-- Colores adicionales -->
+    <color name="colorDivider">#E0E0E0</color>
+    <color name="success">#27AE60</color>
+    <color name="primary">#6200EE</color>
+    <color name="background_light">#F5F5F5</color>
+    <color name="text_primary">#1C1B1F</color>
+    <color name="text_secondary">#757575</color>
 </resources>

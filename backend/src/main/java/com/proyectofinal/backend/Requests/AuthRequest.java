@@ -1,6 +1,6 @@
 package com.proyectofinal.backend.Requests;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 
 public class AuthRequest {
     @NotBlank(message = "El nombre de usuario es obligatorio")

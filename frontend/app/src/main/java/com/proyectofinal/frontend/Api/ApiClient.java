@@ -33,6 +33,7 @@ public class ApiClient {
     private ShiftAssignmentApiService shiftAssignmentApiService;
     private HolidayApiService holidayApiService;
     private IncidenceRetrofitService incidenceRetrofitService;
+    private WorkReportApiService workReportApiService;
     private Context context;
     private OkHttpClient okHttpClient;
     private Retrofit retrofit;
@@ -112,6 +113,14 @@ public class ApiClient {
         return instance;
     }
 
+    // Método estático para obtener Retrofit directamente
+    public static Retrofit getClient() {
+        if (instance == null) {
+            throw new IllegalStateException("ApiClient no ha sido inicializado. Llama a getInstance(context) primero.");
+        }
+        return instance.retrofit;
+    }
+
     public ApiService getApiService() {
         return apiService;
     }
@@ -163,6 +172,13 @@ public class ApiClient {
             incidenceRetrofitService = retrofit.create(IncidenceRetrofitService.class);
         }
         return incidenceRetrofitService;
+    }
+
+    public WorkReportApiService getWorkReportApiService() {
+        if (workReportApiService == null) {
+            workReportApiService = retrofit.create(WorkReportApiService.class);
+        }
+        return workReportApiService;
     }
 
     // Método para obtener el OkHttpClient configurado
