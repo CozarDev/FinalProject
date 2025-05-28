@@ -26,17 +26,24 @@ frontend/
 *.apk
 *.aab
 
-# Archivos de configuración local
-backend/src/main/resources/application.properties
-backend/src/main/resources/firebase-service-account.json
+# Archivos de configuración de EJEMPLO solamente (los reales SÍ se necesitan)
+backend/src/main/resources/application.properties.example
+backend/src/main/resources/firebase-service-account.json.example
 
-# Archivos temporales
+# Archivos temporales y build
 *.tmp
 *.log
-target/
-build/
+backend/target/
+backend/build/
 
 # IDE
 .idea/
 .vscode/
-*.iml 
+*.iml
+
+# Scripts de setup
+setup.sh
+setup.bat
+
+# Documentación de desarrollo
+README.md 
