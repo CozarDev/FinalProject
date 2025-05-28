@@ -26,7 +26,7 @@ frontend/
 *.apk
 *.aab
 
-# Archivos de configuración de EJEMPLO solamente (los reales SÍ se necesitan)
+# Archivos de EJEMPLO solamente (los reales SÍ se suben en deploy local)
 backend/src/main/resources/application.properties.example
 backend/src/main/resources/firebase-service-account.json.example
 
@@ -41,7 +41,10 @@ backend/build/
 .vscode/
 *.iml
 
-# Scripts de setup
+# Scripts de deploy local (NO subir a Cloud Run)
+deploy-local.bat
+webhook-server.js
+.github/
 setup.sh
 setup.bat
 

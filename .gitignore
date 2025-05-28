@@ -229,3 +229,13 @@ docker-compose.override.yml
 # Para configurar el proyecto:
 # 1. Ejecuta setup.bat/sh en la raíz
 # 2. Los archivos .example se copiarán automáticamente
+backend/src/main/resources/application.properties
+
+# ===== ARCHIVOS SENSIBLES - NO SUBIR A GITHUB =====
+# Archivos de configuración con credenciales reales
+backend/src/main/resources/application.properties
+backend/src/main/resources/firebase-service-account.json
+
+# Scripts de deploy local (solo para uso local)
+deploy-local.bat
+webhook-server.js

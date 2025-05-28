@@ -22,6 +22,11 @@ steps:
       - '--cpu=1'
       - '--max-instances=10'
       - '--set-env-vars=SPRING_PROFILES_ACTIVE=firebase'
+      - '--set-env-vars=JWT_SECRET=clave-super-secreta-para-generar-tokens-jwt-segura-firebase-123456'
+      - '--set-env-vars=CALENDARIFIC_API_KEY=ijRMfLATKCEWWDkl7CkSuO9v9D6U6nCX'
+      - '--set-env-vars=MONGODB_URI=mongodb+srv://pedrocozar:Cozar2004@cluster0.ixqhj.mongodb.net/db_fproject?retryWrites=true&w=majority&appName=Cluster0'
+      - '--set-env-vars=MONGODB_DATABASE=db_fproject'
+      - '--set-env-vars=FIREBASE_PROJECT_ID=proyecto-final-estech'
 
 # Configuración de imágenes
 images:
