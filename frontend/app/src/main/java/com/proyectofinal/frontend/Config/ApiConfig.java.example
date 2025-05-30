@@ -32,7 +32,7 @@ public class ApiConfig {
     
     // URLs CONFIGURADAS Y LISTAS PARA USAR
     private static final String EMULATOR_URL = "http://10.0.2.2:8080/";           // Para emulador Android
-    private static final String LOCAL_DEVICE_URL = "http://192.168.1.100:8080/"; // Para dispositivo físico (cambiar IP)
+    private static final String LOCAL_DEVICE_URL = "http://10.0.2.2:8080"; // Para dispositivo físico (cambiar IP)
     private static final String PRODUCTION_URL = "https://turnado-app.run.app/";  // Cambiar por tu URL real
     
     private static ApiConfig instance;
