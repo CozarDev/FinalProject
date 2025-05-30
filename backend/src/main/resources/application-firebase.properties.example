@@ -1,10 +1,16 @@
-# Configuración para Google Cloud Run (Firebase) + MongoDB Atlas
+# CONFIGURACIÓN PARA GOOGLE CLOUD RUN (Firebase) + MongoDB Atlas
+# ==================================================================================
+# INSTRUCCIONES:
+# 1. Copia este archivo como "application-firebase.properties" (sin .example)
+# 2. Configura los valores con tus credenciales reales
+# 3. NUNCA subas el archivo real a GitHub (ya está en .gitignore)
+# ==================================================================================
 
 # Configuración de seguridad JWT
-jwt.secret=${JWT_SECRET:clave-super-secreta-para-generar-tokens-jwt-segura-firebase-123456}
+jwt.secret=${JWT_SECRET:your-super-secret-jwt-key-here}
 jwt.expiration=86400000
 
-# Base de datos MongoDB Atlas (mismo que usas ahora)
+# Base de datos MongoDB Atlas
 spring.data.mongodb.uri=${MONGODB_URI:mongodb://localhost:27017/db_fproject}
 spring.data.mongodb.database=${MONGODB_DATABASE:db_fproject}
 
@@ -14,12 +20,12 @@ server.port=${PORT:8080}
 # Configuración CORS (permitir desde cualquier origen para desarrollo)
 cors.allowed.origins=*
 
-# Configuración de Calendarific (usar variable de entorno)
-calendarific.api.key=${CALENDARIFIC_API_KEY:tu-api-key-aqui}
+# Configuración de Calendarific (obtener en: https://calendarific.com/api-documentation)
+calendarific.api.key=${CALENDARIFIC_API_KEY:your-calendarific-api-key-here}
 
-# Configuración de Firebase (corregir project ID)
+# Configuración de Firebase
 firebase.credentials.path=${FIREBASE_CREDENTIALS_PATH:}
-firebase.project.id=${FIREBASE_PROJECT_ID:turnado-ab134}
+firebase.project.id=${FIREBASE_PROJECT_ID:your-firebase-project-id}
 
 # Configuración de logs
 logging.level.com.proyectofinal=INFO

@@ -1,9 +1,12 @@
 plugins {
     alias(libs.plugins.android.application)
-    // Plugin de Google Services solo si existe el archivo google-services.json
-    if (file("google-services.json").exists()) {
-        id("com.google.gms.google-services")
-    }
+    
+    // 🔥 FIREBASE - NOTIFICACIONES PUSH (COMPLETAMENTE OPCIONAL) 🔥
+    // DESCOMENTA la siguiente línea SOLO si quieres habilitar notificaciones push:
+    // 1. Primero configura google-services.json (ver google-services.json.example)
+    // 2. Luego descomenta esta línea y las dependencias de Firebase más abajo
+    // 3. Rebuild el proyecto
+    // id("com.google.gms.google-services")
 }
 
 android {
@@ -62,12 +65,11 @@ dependencies {
     // TapTargetView para guías visuales
     implementation(libs.tap.target.view)
     
-    // Firebase dependencies - Solo si google-services.json existe
-    if (file("google-services.json").exists()) {
-        implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-        implementation("com.google.firebase:firebase-messaging")
-        implementation("com.google.firebase:firebase-analytics")
-    }
+    // 🔥 FIREBASE DEPENDENCIES - NOTIFICACIONES PUSH (COMENTADAS POR DEFECTO) 🔥
+    // DESCOMENTA las siguientes líneas SOLO después de configurar google-services.json:
+    // implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+    // implementation("com.google.firebase:firebase-messaging")
+    // implementation("com.google.firebase:firebase-analytics")
     
     // Core library desugaring para compatibilidad con Java 8
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")

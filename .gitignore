@@ -167,6 +167,7 @@ gcloud-config/
 # Docker
 .dockerignore
 docker-compose.override.yml
+Dockerfile
 
 # Environment variables
 .env
