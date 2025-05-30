@@ -44,8 +44,8 @@ public class IncidenceController {
         // Verificar permisos de acceso
         
         // Verificar que es empleado del departamento de incidencias
-        if (!incidenceService.isIncidencesDepartmentEmployee(currentUserId) && 
-            !incidenceService.isIncidencesDepartmentManager(currentUserId) &&
+        if (!incidenceService.isUserIncidenceDepartmentEmployee(currentUserId) && 
+            !incidenceService.isUserIncidenceDepartmentHead(currentUserId) &&
             !userService.isCurrentUserAdmin()) {
             logger.warn("Acceso denegado a pendientes. Usuario {} no tiene permisos", currentUserId);
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
@@ -70,8 +70,8 @@ public class IncidenceController {
         String currentUserId = userService.getCurrentUserId();
         
         // Verificar que es empleado del departamento de incidencias
-        if (!incidenceService.isIncidencesDepartmentEmployee(currentUserId) && 
-            !incidenceService.isIncidencesDepartmentManager(currentUserId) &&
+        if (!incidenceService.isUserIncidenceDepartmentEmployee(currentUserId) && 
+            !incidenceService.isUserIncidenceDepartmentHead(currentUserId) &&
             !userService.isCurrentUserAdmin()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo empleados del departamento de incidencias pueden aceptar incidencias");
@@ -95,8 +95,8 @@ public class IncidenceController {
         String currentUserId = userService.getCurrentUserId();
         
         // Verificar que es empleado del departamento de incidencias
-        if (!incidenceService.isIncidencesDepartmentEmployee(currentUserId) && 
-            !incidenceService.isIncidencesDepartmentManager(currentUserId) &&
+        if (!incidenceService.isUserIncidenceDepartmentEmployee(currentUserId) && 
+            !incidenceService.isUserIncidenceDepartmentHead(currentUserId) &&
             !userService.isCurrentUserAdmin()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo empleados del departamento de incidencias pueden resolver incidencias");
@@ -120,8 +120,8 @@ public class IncidenceController {
         String currentUserId = userService.getCurrentUserId();
         
         // Verificar que es empleado del departamento de incidencias
-        if (!incidenceService.isIncidencesDepartmentEmployee(currentUserId) && 
-            !incidenceService.isIncidencesDepartmentManager(currentUserId) &&
+        if (!incidenceService.isUserIncidenceDepartmentEmployee(currentUserId) && 
+            !incidenceService.isUserIncidenceDepartmentHead(currentUserId) &&
             !userService.isCurrentUserAdmin()) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN)
                     .body("Solo empleados del departamento de incidencias pueden ver incidencias asignadas");
@@ -147,7 +147,7 @@ public class IncidenceController {
         String currentUserId = userService.getCurrentUserId();
         
         // Verificar permisos
-        boolean isIncidenceManager = incidenceService.isIncidencesDepartmentManager(currentUserId);
+        boolean isIncidenceManager = incidenceService.isUserIncidenceDepartmentHead(currentUserId);
         boolean isAdmin = userService.isCurrentUserAdmin();
         
         if (!isIncidenceManager && !isAdmin) {
@@ -179,7 +179,7 @@ public class IncidenceController {
         String currentUserId = userService.getCurrentUserId();
         
         // Verificar permisos
-        boolean isIncidenceManager = incidenceService.isIncidencesDepartmentManager(currentUserId);
+        boolean isIncidenceManager = incidenceService.isUserIncidenceDepartmentHead(currentUserId);
         boolean isAdmin = userService.isCurrentUserAdmin();
         
         if (!isIncidenceManager && !isAdmin) {
@@ -424,8 +424,8 @@ public class IncidenceController {
             // 5. Está asignada a él
             
             boolean canView = userService.isCurrentUserAdmin() ||
-                            incidenceService.isIncidencesDepartmentEmployee(currentUserId) ||
-                            incidenceService.isIncidencesDepartmentManager(currentUserId) ||
+                            incidenceService.isUserIncidenceDepartmentEmployee(currentUserId) ||
+                            incidenceService.isUserIncidenceDepartmentHead(currentUserId) ||
                             currentUserId.equals(incidence.getCreatedBy()) ||
                             currentUserId.equals(incidence.getAssignedTo()) ||
                             userService.isCurrentUserDepartmentHeadOfEmployee(incidence.getCreatedBy());
@@ -450,7 +450,7 @@ public class IncidenceController {
     public ResponseEntity<?> getIncidenceStats() {
         // Solo admin y jefe de incidencias pueden ver estadísticas
         String currentUserId = userService.getCurrentUserId();
-        boolean isIncidenceManager = incidenceService.isIncidencesDepartmentManager(currentUserId);
+        boolean isIncidenceManager = incidenceService.isUserIncidenceDepartmentHead(currentUserId);
         boolean isAdmin = userService.isCurrentUserAdmin();
         
         if (!isIncidenceManager && !isAdmin) {
