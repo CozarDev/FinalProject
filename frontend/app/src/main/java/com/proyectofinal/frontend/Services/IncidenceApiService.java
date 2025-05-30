@@ -13,6 +13,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+
 public class IncidenceApiService {
     
     private static final String TAG = "IncidenceApiService";
@@ -55,87 +59,78 @@ public class IncidenceApiService {
     // **MÉTODOS PARA EMPLEADOS DEL DEPARTAMENTO DE INCIDENCIAS**
     
     /**
-     * Obtiene incidencias pendientes (para empleados de incidencias)
+     * Obtiene todas las incidencias pendientes (solo para empleados del departamento de incidencias)
      */
-    public void getPendingIncidences(IncidenceListCallback callback) {
-        Log.d(TAG, "Obteniendo incidencias pendientes");
-        
-        retrofitService.getPendingIncidences().enqueue(new retrofit2.Callback<List<Incidence>>() {
+    public void getPendingIncidences(IncidenceCallback callback) {
+        Call<List<Incidence>> call = retrofitService.getPendingIncidences();
+        call.enqueue(new Callback<List<Incidence>>() {
             @Override
-            public void onResponse(retrofit2.Call<List<Incidence>> call, retrofit2.Response<List<Incidence>> response) {
+            public void onResponse(Call<List<Incidence>> call, Response<List<Incidence>> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    List<Incidence> incidences = response.body();
-                    Log.d(TAG, "Incidencias pendientes obtenidas: " + incidences.size());
-                    callback.onSuccess(incidences);
+                    callback.onSuccess(response.body());
                 } else {
-                    String error = "Error: " + response.code() + " " + response.message();
-                    Log.e(TAG, "Error obteniendo incidencias pendientes: " + error);
+                    String error = "Error obteniendo incidencias pendientes: " + response.code();
+                    Log.e(TAG, error);
                     callback.onError(error);
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<List<Incidence>> call, Throwable t) {
-                String error = "Error de conexión: " + t.getMessage();
-                Log.e(TAG, "Error obteniendo incidencias pendientes: " + error);
+            public void onFailure(Call<List<Incidence>> call, Throwable t) {
+                String error = "Error de conexión obteniendo incidencias pendientes: " + t.getMessage();
+                Log.e(TAG, error);
                 callback.onError(error);
             }
         });
     }
     
     /**
-     * Acepta una incidencia (empleado de incidencias toma la incidencia)
+     * Acepta una incidencia (solo para empleados del departamento de incidencias)
      */
-    public void acceptIncidence(String incidenceId, IncidenceCallback callback) {
-        Log.d(TAG, "Aceptando incidencia: " + incidenceId);
-        
-        retrofitService.acceptIncidence(incidenceId).enqueue(new retrofit2.Callback<Incidence>() {
+    public void acceptIncidence(String incidenceId, SimpleCallback callback) {
+        Call<Incidence> call = retrofitService.acceptIncidence(incidenceId);
+        call.enqueue(new Callback<Incidence>() {
             @Override
-            public void onResponse(retrofit2.Call<Incidence> call, retrofit2.Response<Incidence> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Incidence incidence = response.body();
-                    Log.d(TAG, "Incidencia aceptada exitosamente: " + incidenceId);
-                    callback.onSuccess(incidence);
+            public void onResponse(Call<Incidence> call, Response<Incidence> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess("Incidencia aceptada exitosamente");
                 } else {
-                    String error = "Error: " + response.code() + " " + response.message();
-                    Log.e(TAG, "Error aceptando incidencia: " + error);
+                    String error = "Error aceptando incidencia: " + response.code();
+                    Log.e(TAG, error);
                     callback.onError(error);
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<Incidence> call, Throwable t) {
-                String error = "Error de conexión: " + t.getMessage();
-                Log.e(TAG, "Error aceptando incidencia: " + error);
+            public void onFailure(Call<Incidence> call, Throwable t) {
+                String error = "Error de conexión aceptando incidencia: " + t.getMessage();
+                Log.e(TAG, error);
                 callback.onError(error);
             }
         });
     }
     
     /**
-     * Resuelve una incidencia (marca como solucionada)
+     * Resuelve una incidencia (solo para empleados del departamento de incidencias)
      */
-    public void resolveIncidence(String incidenceId, IncidenceCallback callback) {
-        Log.d(TAG, "Resolviendo incidencia: " + incidenceId);
-        
-        retrofitService.resolveIncidence(incidenceId).enqueue(new retrofit2.Callback<Incidence>() {
+    public void resolveIncidence(String incidenceId, Map<String, String> resolutionData, SimpleCallback callback) {
+        Call<Incidence> call = retrofitService.resolveIncidence(incidenceId, resolutionData);
+        call.enqueue(new Callback<Incidence>() {
             @Override
-            public void onResponse(retrofit2.Call<Incidence> call, retrofit2.Response<Incidence> response) {
-                if (response.isSuccessful() && response.body() != null) {
-                    Incidence incidence = response.body();
-                    Log.d(TAG, "Incidencia resuelta exitosamente: " + incidenceId);
-                    callback.onSuccess(incidence);
+            public void onResponse(Call<Incidence> call, Response<Incidence> response) {
+                if (response.isSuccessful()) {
+                    callback.onSuccess("Incidencia resuelta exitosamente");
                 } else {
-                    String error = "Error: " + response.code() + " " + response.message();
-                    Log.e(TAG, "Error resolviendo incidencia: " + error);
+                    String error = "Error resolviendo incidencia: " + response.code();
+                    Log.e(TAG, error);
                     callback.onError(error);
                 }
             }
-            
+
             @Override
-            public void onFailure(retrofit2.Call<Incidence> call, Throwable t) {
-                String error = "Error de conexión: " + t.getMessage();
-                Log.e(TAG, "Error resolviendo incidencia: " + error);
+            public void onFailure(Call<Incidence> call, Throwable t) {
+                String error = "Error de conexión resolviendo incidencia: " + t.getMessage();
+                Log.e(TAG, error);
                 callback.onError(error);
             }
         });

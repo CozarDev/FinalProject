@@ -1,6 +1,7 @@
 package com.proyectofinal.frontend.Fragments;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -124,22 +125,21 @@ public class ManageEmployeesFragment extends Fragment implements EmployeeAdapter
 
     private void initRetrofit() {
         // Usar ApiClient para obtener un cliente ya configurado con token JWT
-        if (getContext() != null) {
-            ApiClient apiClient = ApiClient.getInstance(getContext());
-            
-            // Crear el servicio para empleados usando la URL base y cliente HTTP ya configurados
-            Retrofit retrofit = new Retrofit.Builder()
-                    .baseUrl(apiClient.getCurrentBaseUrl())
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .client(apiClient.getOkHttpClient()) // Usar el cliente HTTP configurado con token
-                    .build();
-            
-            employeeApiService = retrofit.create(EmployeeApiService.class);
-            departmentApiService = retrofit.create(DepartmentApiService.class);
-        } else {
-            // Si el contexto es nulo, registrar error pero no mostrar Toast
-            System.out.println("Error: Contexto nulo al inicializar API");
+        if (getContext() == null) {
+            Log.e(TAG, "Error: Contexto nulo al inicializar API");
+            return;
         }
+        ApiClient apiClient = ApiClient.getInstance(getContext());
+        
+        // Crear el servicio para empleados usando la URL base y cliente HTTP ya configurados
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(apiClient.getCurrentBaseUrl())
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(apiClient.getOkHttpClient()) // Usar el cliente HTTP configurado con token
+                .build();
+        
+        employeeApiService = retrofit.create(EmployeeApiService.class);
+        departmentApiService = retrofit.create(DepartmentApiService.class);
     }
 
     private void setupListeners() {

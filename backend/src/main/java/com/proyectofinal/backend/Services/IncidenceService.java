@@ -279,44 +279,29 @@ public class IncidenceService {
     /**
      * Verifica si un empleado pertenece al departamento de incidencias
      */
-    public boolean isIncidencesDepartmentEmployee(String userId) {
+    public boolean isUserIncidenceDepartmentEmployee(String userId) {
         try {
-            // Buscar empleado por userId
-            List<Employee> employees = employeeRepository.findAll();
-            Employee employee = null;
-            for (Employee emp : employees) {
-                if (emp.getUserId() != null && emp.getUserId().equals(userId)) {
-                    employee = emp;
-                    break;
-                }
-            }
-            
-            if (employee == null) {
-                logger.debug("No se encontró empleado con userId: {}", userId);
+            Optional<Employee> employeeOpt = employeeRepository.findByUserId(userId);
+            if (employeeOpt.isEmpty()) {
                 return false;
             }
-            
+
+            Employee employee = employeeOpt.get();
             if (employee.getDepartmentId() == null) {
-                logger.debug("Empleado {} no tiene departamento asignado", employee.getId());
                 return false;
             }
-            
-            Optional<Department> optionalDepartment = departmentRepository.findById(employee.getDepartmentId());
-            if (optionalDepartment.isEmpty()) {
-                logger.debug("Departamento {} no encontrado", employee.getDepartmentId());
+
+            Optional<Department> departmentOpt = departmentRepository.findById(employee.getDepartmentId());
+            if (departmentOpt.isEmpty()) {
                 return false;
             }
-            
-            Department department = optionalDepartment.get();
-            boolean isIncidencesDept = INCIDENCES_DEPARTMENT_NAME.equalsIgnoreCase(department.getName());
-            
-            logger.debug("Usuario {} - Empleado: {}, Departamento: {}, Es dept. incidencias: {}", 
-                        userId, employee.getId(), department.getName(), isIncidencesDept);
-            
-            return isIncidencesDept;
-            
+
+            Department department = departmentOpt.get();
+            boolean isIncidencesDepartment = INCIDENCES_DEPARTMENT_NAME.equalsIgnoreCase(department.getName().trim());
+
+            return isIncidencesDepartment;
         } catch (Exception e) {
-            logger.error("Error verificando si usuario {} pertenece al departamento de incidencias", userId, e);
+            logger.error("Error verificando si el usuario es empleado del departamento de incidencias: {}", e.getMessage());
             return false;
         }
     }
@@ -324,32 +309,27 @@ public class IncidenceService {
     /**
      * Verifica si un empleado es jefe del departamento de incidencias
      */
-    public boolean isIncidencesDepartmentManager(String userId) {
+    public boolean isUserIncidenceDepartmentHead(String userId) {
         try {
-            // Buscar empleado por userId
-            List<Employee> employees = employeeRepository.findAll();
-            Employee employee = null;
-            for (Employee emp : employees) {
-                if (emp.getUserId() != null && emp.getUserId().equals(userId)) {
-                    employee = emp;
-                    break;
-                }
+            Optional<Employee> employeeOpt = employeeRepository.findByUserId(userId);
+            if (employeeOpt.isEmpty()) {
+                return false;
             }
+
+            Employee employee = employeeOpt.get();
             
-            if (employee == null) {
-                logger.debug("No se encontró empleado con userId: {}", userId);
+            // Buscar el departamento de incidencias
+            Department incidencesDepartment = departmentRepository.findByNameIgnoreCase(INCIDENCES_DEPARTMENT_NAME);
+            if (incidencesDepartment == null) {
                 return false;
             }
             
-            Department incidencesDepartment = departmentRepository.findByNameIgnoreCase(INCIDENCES_DEPARTMENT_NAME);
-            boolean isManager = incidencesDepartment != null && employee.getId().equals(incidencesDepartment.getManagerId());
-            
-            logger.debug("Usuario {} - Empleado: {}, Es jefe dept. incidencias: {}", 
-                        userId, employee.getId(), isManager);
-            
-            return isManager;
+            // Verificar si el empleado es el manager del departamento de incidencias
+            boolean isIncidenceHead = employee.getId().equals(incidencesDepartment.getManagerId());
+
+            return isIncidenceHead;
         } catch (Exception e) {
-            logger.error("Error verificando si usuario {} es jefe del departamento de incidencias", userId, e);
+            logger.error("Error verificando si el usuario es jefe del departamento de incidencias: {}", e.getMessage());
             return false;
         }
     }

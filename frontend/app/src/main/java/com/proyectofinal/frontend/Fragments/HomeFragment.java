@@ -710,76 +710,70 @@ public class HomeFragment extends Fragment {
         return null;
     }
     
-    /**
-     * Verifica si una fecha está dentro de un rango (inclusive)
-     */
-    private boolean isDateInRange(Date targetDate, Date startDate, Date endDate) {
-        if (targetDate == null || startDate == null || endDate == null) {
-            Log.w(TAG, "isDateInRange: Una de las fechas es null");
+    private boolean hasExceptionForDate(Date date) {
+        if (userShiftExceptions == null || userShiftExceptions.isEmpty()) {
             return false;
         }
-        
-        // Normalizar las fechas a medianoche para comparación
-        Calendar target = Calendar.getInstance();
-        target.setTime(targetDate);
-        target.set(Calendar.HOUR_OF_DAY, 0);
-        target.set(Calendar.MINUTE, 0);
-        target.set(Calendar.SECOND, 0);
-        target.set(Calendar.MILLISECOND, 0);
-        
-        Calendar start = Calendar.getInstance();
-        start.setTime(startDate);
-        start.set(Calendar.HOUR_OF_DAY, 0);
-        start.set(Calendar.MINUTE, 0);
-        start.set(Calendar.SECOND, 0);
-        start.set(Calendar.MILLISECOND, 0);
-        
-        Calendar end = Calendar.getInstance();
-        end.setTime(endDate);
-        end.set(Calendar.HOUR_OF_DAY, 23);
-        end.set(Calendar.MINUTE, 59);
-        end.set(Calendar.SECOND, 59);
-        end.set(Calendar.MILLISECOND, 999);
-        
-        long targetTime = target.getTimeInMillis();
-        long startTime = start.getTimeInMillis();
-        long endTime = end.getTimeInMillis();
-        
-        boolean inRange = targetTime >= startTime && targetTime <= endTime;
-        
-        SimpleDateFormat debugFormat = new SimpleDateFormat("yyyy-MM-dd", Locale.getDefault());
-        Log.d(TAG, "Verificando rango:");
-        Log.d(TAG, "  Fecha objetivo: " + debugFormat.format(targetDate));
-        Log.d(TAG, "  Inicio: " + debugFormat.format(startDate));
-        Log.d(TAG, "  Fin: " + debugFormat.format(endDate));
-        Log.d(TAG, "  ¿Está en rango?: " + inRange);
-        
-        return inRange;
+
+        for (ShiftException exception : userShiftExceptions) {
+            if (exception.getStartDate() == null) continue;
+
+            // Comparar solo la fecha (ignorar tiempo)
+            if (isSameDay(exception.getStartDate(), date)) {
+                return true;
+            }
+
+            // Si tiene fecha de fin, verificar si la fecha está en el rango
+            if (exception.getEndDate() != null && !isSameDay(exception.getStartDate(), exception.getEndDate())) {
+                if (isDateInRange(date, exception.getStartDate(), exception.getEndDate())) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
-    
+
+    private boolean isDateInRange(Date targetDate, Date startDate, Date endDate) {
+        // Normalizar las fechas a medianoche para comparar solo las fechas
+        Calendar cal = Calendar.getInstance();
+        
+        cal.setTime(targetDate);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date normalizedTarget = cal.getTime();
+        
+        cal.setTime(startDate);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        Date normalizedStart = cal.getTime();
+        
+        cal.setTime(endDate);
+        cal.set(Calendar.HOUR_OF_DAY, 23);
+        cal.set(Calendar.MINUTE, 59);
+        cal.set(Calendar.SECOND, 59);
+        cal.set(Calendar.MILLISECOND, 999);
+        Date normalizedEnd = cal.getTime();
+        
+        return normalizedTarget.compareTo(normalizedStart) >= 0 && normalizedTarget.compareTo(normalizedEnd) <= 0;
+    }
+
     private boolean isSameDay(Date date1, Date date2) {
         if (date1 == null || date2 == null) {
-            Log.w(TAG, "isSameDay: Una de las fechas es null - date1: " + (date1 != null) + ", date2: " + (date2 != null));
             return false;
         }
         
         Calendar cal1 = Calendar.getInstance();
-        cal1.setTime(date1);
-        
         Calendar cal2 = Calendar.getInstance();
+        cal1.setTime(date1);
         cal2.setTime(date2);
         
-        boolean sameYear = cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR);
-        boolean sameDay = cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
-        
-        // Logs de debug
-        SimpleDateFormat debugFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault());
-        Log.d(TAG, "Comparando fechas:");
-        Log.d(TAG, "  Fecha 1: " + debugFormat.format(date1) + " (año: " + cal1.get(Calendar.YEAR) + ", día del año: " + cal1.get(Calendar.DAY_OF_YEAR) + ")");
-        Log.d(TAG, "  Fecha 2: " + debugFormat.format(date2) + " (año: " + cal2.get(Calendar.YEAR) + ", día del año: " + cal2.get(Calendar.DAY_OF_YEAR) + ")");
-        Log.d(TAG, "  ¿Mismo año?: " + sameYear + ", ¿Mismo día?: " + sameDay + ", Resultado: " + (sameYear && sameDay));
-        
-        return sameYear && sameDay;
+        return cal1.get(Calendar.YEAR) == cal2.get(Calendar.YEAR) &&
+               cal1.get(Calendar.DAY_OF_YEAR) == cal2.get(Calendar.DAY_OF_YEAR);
     }
 
     // Método para ser llamado cuando se selecciona esta pestaña

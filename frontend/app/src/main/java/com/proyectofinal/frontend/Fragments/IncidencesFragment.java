@@ -91,11 +91,10 @@ public class IncidencesFragment extends Fragment {
             
             Log.d(TAG, "onViewCreated completado exitosamente");
         
-        // DEBUG TEMPORAL: Probar autenticación
-        testDebugAuth();
+        checkUserRole();
+        setupInitialUI();
         } catch (Exception e) {
             Log.e(TAG, "Error en onViewCreated", e);
-            throw e;
         }
     }
 
@@ -116,18 +115,7 @@ public class IncidencesFragment extends Fragment {
     }
 
     private void loadEmployeeInfoAndSetupTabs() {
-        // Si es admin, configurar directamente las pestañas
-        if ("ADMIN".equals(userRole)) {
-            isIncidencesDepartmentEmployee = false;
-            isIncidencesDepartmentManager = false;
-            currentDepartmentName = "Administración";
-            isDepartmentInfoLoaded = true;
-            setupTabsBasedOnRole();
-            setupFloatingActionButton();
-            return;
-        }
-
-        // Para empleados y jefes de departamento, obtener información del backend
+        // Obtener información del empleado actual
         apiClient.getEmployeeApiService().getCurrentEmployeeInfo().enqueue(new Callback<Employee>() {
             @Override
             public void onResponse(Call<Employee> call, Response<Employee> response) {
@@ -361,8 +349,6 @@ public class IncidencesFragment extends Fragment {
                   ", Es jefe de incidencias: " + isIncidencesDepartmentManager);
     }
 
-
-
     private IncidenceAdapter.UserRole getUserRole() {
         if ("ADMIN".equals(userRole)) {
             return IncidenceAdapter.UserRole.ADMIN;
@@ -553,25 +539,6 @@ public class IncidencesFragment extends Fragment {
         }
     }
 
-
-    
-    // **MÉTODO TEMPORAL PARA DEBUG**
-    private void testDebugAuth() {
-        Log.d(TAG, "Probando debug auth...");
-        
-        apiClient.get("api/incidences/debug-auth", new ApiClient.ApiCallback() {
-            @Override
-            public void onSuccess(String response) {
-                Log.d(TAG, "DEBUG AUTH SUCCESS: " + response);
-            }
-            
-            @Override
-            public void onError(String error) {
-                Log.e(TAG, "DEBUG AUTH ERROR: " + error);
-            }
-        });
-    }
-
     // Método para ser llamado cuando se selecciona esta pestaña
     public void onPageSelected() {
         Log.d(TAG, "onPageSelected() - IncidencesFragment seleccionado");
@@ -597,5 +564,19 @@ public class IncidencesFragment extends Fragment {
             Log.d(TAG, "Refrescando datos en onResume");
             refreshAllTabs();
         }
+    }
+
+    private void checkUserRole() {
+        // Implementa la lógica para verificar el rol del usuario
+        // Esto puede incluir la llamada a un servicio para obtener el rol actual del usuario
+        // o simplemente verificar el rol almacenado en el SharedPreferences
+        Log.d(TAG, "Verificando rol del usuario: " + userRole);
+    }
+
+    private void setupInitialUI() {
+        // Implementa la lógica para configurar la interfaz de usuario inicial
+        // Esto puede incluir la llamada a otros métodos para configurar la interfaz
+        // o simplemente llamar a otros métodos para configurar la interfaz
+        Log.d(TAG, "Configurando interfaz de usuario inicial");
     }
 } 

@@ -266,7 +266,6 @@ public class WorkReportListFragment extends Fragment {
     }
 
     public void refreshData() {
-        android.util.Log.d("WorkReportListFragment", "refreshData() llamado");
         loadWorkReports();
     }
 } 

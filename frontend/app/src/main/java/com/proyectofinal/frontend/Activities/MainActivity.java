@@ -88,9 +88,6 @@ public class MainActivity extends AppCompatActivity {
         isAdmin = "ADMIN".equals(currentRole);
         isDepartmentHead = "DEPARTMENT_HEAD".equals(currentRole);
         
-        Log.d("MainActivity", "Rol del usuario: " + currentRole);
-        Log.d("MainActivity", "isAdmin: " + isAdmin + ", isDepartmentHead: " + isDepartmentHead);
-        
         // Solo verificar si hay token, pero no mostrar Toast
         String token = prefs.getString("JWT_TOKEN", "");
         if (token.isEmpty()) {
@@ -134,26 +131,22 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onPageSelected(int position) {
                 super.onPageSelected(position);
-                Log.d("MainActivity", "Página seleccionada: " + position);
                 
                 // Actualizar BottomNavigationView y título del toolbar
                 switch (position) {
                     case 0:
                         bottomNavigationView.setSelectedItemId(R.id.nav_home);
                         updateToolbarTitle("Inicio");
-                        Log.d("MainActivity", "Navegando a Home - notificando selección");
                         notifyHomeFragmentSelected();
                         break;
                     case 1:
                         bottomNavigationView.setSelectedItemId(R.id.nav_incidents);
                         updateToolbarTitle("Incidencias");
-                        Log.d("MainActivity", "Navegando a Incidences - notificando selección");
                         notifyIncidencesFragmentSelected();
                         break;
                     case 2:
                         bottomNavigationView.setSelectedItemId(R.id.nav_work_reports);
                         updateToolbarTitle("Partes de Trabajo");
-                        Log.d("MainActivity", "Navegando a WorkReports - notificando selección");
                         notifyWorkReportsFragmentSelected();
                         break;
                 }
@@ -492,7 +485,6 @@ public class MainActivity extends AppCompatActivity {
                 new Handler().postDelayed(() -> {
                     if (viewPager2 != null) {
                         viewPager2.setCurrentItem(2, true); // Índice 2 = WorkReports
-                        Log.d("MainActivity", "Navegando a WorkReports después de crear parte");
                         
                         // Dar un poco más de tiempo y luego notificar la selección
                         new Handler().postDelayed(() -> {
@@ -532,8 +524,6 @@ public class MainActivity extends AppCompatActivity {
     
     // Método para reemplazar el fragmento actual con otro (usado para detalles de incidencias)
     public void replaceFragment(Fragment fragment) {
-        Log.d("MainActivity", "Reemplazando fragmento: " + fragment.getClass().getSimpleName());
-        
         // Ocultar ViewPager y BottomNavigation
         viewPager2.setVisibility(View.GONE);
         bottomNavigationView.setVisibility(View.GONE);
@@ -639,36 +629,36 @@ public class MainActivity extends AppCompatActivity {
             // Verificar si Firebase está disponible
             Class.forName("com.google.firebase.messaging.FirebaseMessaging");
             
-            // Solicitar permisos de notificación para Android 13+ (API 33+)
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
-                    getPackageManager().PERMISSION_GRANTED) {
-                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
-                }
+        // Solicitar permisos de notificación para Android 13+ (API 33+)
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
+                getPackageManager().PERMISSION_GRANTED) {
+                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
             }
-            
+        }
+        
             // Inicializar Firebase Messaging
             com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
-                    .addOnCompleteListener(task -> {
-                        if (!task.isSuccessful()) {
-                            Log.w("MainActivity", "Error obteniendo token FCM", task.getException());
-                            return;
-                        }
+                .addOnCompleteListener(task -> {
+                    if (!task.isSuccessful()) {
+                        Log.w("MainActivity", "Error obteniendo token FCM", task.getException());
+                        return;
+                    }
 
-                        // Obtener nuevo token FCM
-                        String token = task.getResult();
+                    // Obtener nuevo token FCM
+                    String token = task.getResult();
 
-                        // Guardar token localmente
-                        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-                        prefs.edit().putString("FCM_TOKEN", token).apply();
+                    // Guardar token localmente
+                    SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                    prefs.edit().putString("FCM_TOKEN", token).apply();
 
-                        // Enviar token al servidor
-                        sendTokenToServer(token);
+                    // Enviar token al servidor
+                    sendTokenToServer(token);
                         
                         Log.i("MainActivity", "🔥 Firebase: HABILITADO - Notificaciones push configuradas");
-                    });
+                });
 
-            // Suscribirse a temas generales si es necesario
+        // Suscribirse a temas generales si es necesario
             com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("general");
             
         } catch (ClassNotFoundException e) {
@@ -683,53 +673,53 @@ public class MainActivity extends AppCompatActivity {
     }
     */
      
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+     @Override
+     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
         /*
-        if (requestCode == 1001) {
-            if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
-                Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
-            }
-        }
+         if (requestCode == 1001) {
+             if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
+                 Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
+             } else {
+                 Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
+             }
+         }
         */
-    }
+     }
      
     // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
-    // Método para enviar token FCM al servidor
+     // Método para enviar token FCM al servidor
     /*
-    private void sendTokenToServer(String fcmToken) {
-        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-        String userId = prefs.getString("USER_ID", "");
-        String jwtToken = prefs.getString("JWT_TOKEN", "");
-        
-        if (!userId.isEmpty() && !jwtToken.isEmpty()) {
-            // Crear request con información del dispositivo
-            String deviceInfo = android.os.Build.MODEL + " (" + android.os.Build.VERSION.RELEASE + ")";
-            
-            // Usar el servicio FCM del ApiClient
-            apiClient.getFCMApiService().registerFCMToken(
-                "Bearer " + jwtToken, 
-                new com.proyectofinal.frontend.Api.FCMApiService.FCMTokenRequest(userId, fcmToken, deviceInfo)
-            ).enqueue(new Callback<String>() {
-                @Override
-                public void onResponse(Call<String> call, Response<String> response) {
-                    if (!response.isSuccessful()) {
-                        Log.e("MainActivity", "Error registrando token FCM: " + response.code());
-                    }
-                }
-                
-                @Override
-                public void onFailure(Call<String> call, Throwable t) {
-                    Log.e("MainActivity", "Error de conexión registrando token FCM: " + t.getMessage());
-                }
-            });
-        } else {
-            Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
-        }
-    }
+     private void sendTokenToServer(String fcmToken) {
+         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+         String userId = prefs.getString("USER_ID", "");
+         String jwtToken = prefs.getString("JWT_TOKEN", "");
+         
+         if (!userId.isEmpty() && !jwtToken.isEmpty()) {
+             // Crear request con información del dispositivo
+             String deviceInfo = android.os.Build.MODEL + " (" + android.os.Build.VERSION.RELEASE + ")";
+             
+             // Usar el servicio FCM del ApiClient
+             apiClient.getFCMApiService().registerFCMToken(
+                 "Bearer " + jwtToken, 
+                 new com.proyectofinal.frontend.Api.FCMApiService.FCMTokenRequest(userId, fcmToken, deviceInfo)
+             ).enqueue(new Callback<String>() {
+                 @Override
+                 public void onResponse(Call<String> call, Response<String> response) {
+                     if (!response.isSuccessful()) {
+                         Log.e("MainActivity", "Error registrando token FCM: " + response.code());
+                     }
+                 }
+                 
+                 @Override
+                 public void onFailure(Call<String> call, Throwable t) {
+                     Log.e("MainActivity", "Error de conexión registrando token FCM: " + t.getMessage());
+                 }
+             });
+         } else {
+             Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
+         }
+     }
     */
 }

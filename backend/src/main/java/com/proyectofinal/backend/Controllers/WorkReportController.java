@@ -7,6 +7,8 @@ import com.proyectofinal.backend.Requests.WorkReportRequest;
 import com.proyectofinal.backend.Services.WorkReportService;
 import com.proyectofinal.backend.Services.UserService;
 import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,6 +25,8 @@ import java.util.Optional;
 @RequestMapping("/api/work-reports")
 @CrossOrigin(origins = {"http://localhost:3000", "http://10.0.2.2:8080"}, allowCredentials = "true")
 public class WorkReportController {
+
+    private static final Logger logger = LoggerFactory.getLogger(WorkReportController.class);
 
     @Autowired
     private WorkReportService workReportService;
@@ -62,31 +66,28 @@ public class WorkReportController {
             String currentUserId = userService.getCurrentUserId();
             Authentication auth = SecurityContextHolder.getContext().getAuthentication();
             String userRole = auth.getAuthorities().iterator().next().getAuthority();
-            
-            System.out.println("DEBUG: Buscando empleado con userId: " + currentUserId);
-            System.out.println("DEBUG: Rol del usuario: " + userRole);
-            
+
+            // Buscar el empleado por userId
             Optional<Employee> employeeOpt = employeeRepository.findByUserId(currentUserId);
+
             if (employeeOpt.isEmpty()) {
-                System.out.println("DEBUG: No se encontró empleado con userId: " + currentUserId);
                 return ResponseEntity.status(HttpStatus.FORBIDDEN)
                         .body(Map.of("error", "Empleado no encontrado"));
             }
-            Employee employee = employeeOpt.get();
-            System.out.println("DEBUG: Empleado encontrado: " + employee.getId() + " - " + employee.getFirstName());
 
+            Employee employee = employeeOpt.get();
+
+            // Obtener los partes de trabajo del empleado
             List<WorkReport> workReports = workReportService.getWorkReportsForUser(employee.getId(), userRole);
-            System.out.println("DEBUG: Partes encontrados: " + workReports.size());
             
             // Enriquecer los datos con información del empleado
             List<Map<String, Object>> enrichedReports = workReports.stream()
                     .map(this::enrichWorkReportWithEmployeeInfo)
                     .toList();
-            
+
             return ResponseEntity.ok(enrichedReports);
         } catch (Exception e) {
-            System.out.println("DEBUG: Error en getWorkReports: " + e.getMessage());
-            e.printStackTrace();
+            logger.error("Error obteniendo partes de trabajo: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("error", "Error al obtener los partes de trabajo"));
         }

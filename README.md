@@ -69,6 +69,7 @@ Los archivos `.example` están **completamente configurados** para funcionar inm
 - **Frontend**: Se conecta automáticamente al backend (detecta emulador vs dispositivo)
 - **Base de datos**: Se crea automáticamente al iniciar el backend
 - **Firebase**: ⚠️ **COMENTADO POR DEFECTO** - Las notificaciones push están deshabilitadas
+- **Calendarific**: ⚠️ **COMENTADO POR DEFECTO** - La importación automática de festivos está deshabilitada
 
 ### 📱 **Detección Automática Android**
 
@@ -109,6 +110,36 @@ El frontend detecta automáticamente:
 **Logs tras habilitar Firebase:**
 - **Backend**: `🔥 Firebase: HABILITADO - Notificaciones push disponibles`
 - **Frontend**: `🔥 Firebase: HABILITADO - Notificaciones push configuradas`
+
+### 📅 **Calendarific (Importación Automática de Festivos) - DESHABILITADO POR DEFECTO**
+
+**Estado actual: Calendarific está COMENTADO**
+- ✅ **Funcionará**: Todas las funciones, gestión manual de festivos desde la interfaz
+- ❌ **No funcionará**: Solo la importación automática de festivos nacionales españoles
+- 📱 **Logs que verás**: "🚫 Calendarific: DESHABILITADO - Importación automática de festivos no disponible"
+
+**Para HABILITAR importación automática de festivos (completamente opcional):**
+
+**Paso 1 - Obtener API Key:**
+1. Ve a [Calendarific API](https://calendarific.com/api-documentation)
+2. Regístrate y obtén una API key gratuita
+3. Copia tu API key
+
+**Paso 2 - Configurar Backend:**
+4. En `backend/src/main/resources/application.properties`, añade:
+   ```
+   calendarific.api.key=TU_API_KEY_AQUI
+   ```
+
+**Paso 3 - Descomenta código Calendarific:**
+5. En `backend/src/main/java/.../Services/CalendarificService.java`: Descomenta TODO el archivo
+6. En `backend/src/main/java/.../Services/ScheduledTasksService.java`: Descomenta las líneas Calendarific
+7. En `backend/src/main/java/.../Controllers/HolidayController.java`: Descomenta las líneas Calendarific
+8. Rebuild el proyecto
+
+**Logs tras habilitar Calendarific:**
+- **Backend**: `🔥 Calendarific: HABILITADO - Importación automática de festivos disponible`
+- **Funcionalidad**: Importación automática de festivos nacionales españoles
 
 ---
 

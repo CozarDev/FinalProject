@@ -1,14 +1,25 @@
+// 🔥 SERVICIO CALENDARIFIC COMENTADO - DESCOMENTA SI QUIERES HABILITAR IMPORTACIÓN DE FESTIVOS 🔥
+// ================================================================================================
+// INSTRUCCIONES PARA HABILITAR CALENDARIFIC:
+// 1. Obtén una API key gratuita desde https://calendarific.com/api-documentation
+// 2. Configura calendarific.api.key=TU_API_KEY en application.properties
+// 3. Descomenta TODO este archivo (quita /* y */)
+// 4. Rebuild el proyecto
+// ================================================================================================
+
 package com.proyectofinal.backend.Services;
 
-import com.proyectofinal.backend.Models.CalendarificModels.Holiday;
-import com.proyectofinal.backend.Models.CalendarificModels.HolidayResponse;
-import com.proyectofinal.backend.Models.ShiftException;
 import com.proyectofinal.backend.Repositories.ShiftExceptionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Service;
+
+/*
+import com.proyectofinal.backend.Models.CalendarificModels.Holiday;
+import com.proyectofinal.backend.Models.CalendarificModels.HolidayResponse;
+import com.proyectofinal.backend.Models.ShiftException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.SimpleClientHttpRequestFactory;
-import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import javax.net.ssl.*;
@@ -19,11 +30,51 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.TimeZone;
+*/
 
 @Service
 public class CalendarificService {
 
     private final ShiftExceptionRepository shiftExceptionRepository;
+    private static final Logger logger = LoggerFactory.getLogger(CalendarificService.class);
+
+    public CalendarificService(ShiftExceptionRepository shiftExceptionRepository) {
+        this.shiftExceptionRepository = shiftExceptionRepository;
+        logger.info("🚫 Calendarific: DESHABILITADO - Importación automática de festivos no disponible");
+        logger.info("💡 Para habilitar: Configura API key en application.properties y descomenta CalendarificService.java");
+    }
+
+    /**
+     * Método stub que simula la importación de festivos nacionales
+     * En la versión deshabilitada, simplemente retorna 0
+     */
+    public int importNationalHolidays(int year) {
+        logger.warn("🚫 Calendarific: Importación de festivos deshabilitada para año {}", year);
+        logger.info("💡 Los festivos pueden añadirse manualmente desde la interfaz de administración");
+        return 0;
+    }
+    
+    /**
+     * Método stub que simula la eliminación de festivos nacionales
+     * En la versión deshabilitada, simplemente retorna 0
+     */
+    public int deleteExistingNationalHolidays(int year) {
+        logger.warn("🚫 Calendarific: Eliminación de festivos deshabilitada para año {}", year);
+        return 0;
+    }
+    
+    /**
+     * Método stub que verifica si existen festivos
+     * En la versión deshabilitada, siempre retorna false para permitir operaciones manuales
+     */
+    public boolean holidaysExistForYear(int year) {
+        return false; // Permitir siempre operaciones manuales
+    }
+
+    /*
+    // CÓDIGO COMENTADO - DESCOMENTA PARA HABILITAR CALENDARIFIC
+    // ==========================================================
+    
     private final RestTemplate restTemplate;
     
     @Value("${calendarific.api.key}")
@@ -32,23 +83,16 @@ public class CalendarificService {
     private static final String BASE_URL = "https://calendarific.com/api/v2/holidays";
     private static final SimpleDateFormat ISO_FORMAT = new SimpleDateFormat("yyyy-MM-dd");
 
-    private static final Logger logger = LoggerFactory.getLogger(CalendarificService.class);
-
     public CalendarificService(ShiftExceptionRepository shiftExceptionRepository) {
         this.shiftExceptionRepository = shiftExceptionRepository;
         this.restTemplate = createRestTemplateWithSSLDisabled();
         ISO_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
     }
 
-    /**
-     * Crea un RestTemplate que ignora la verificación SSL
-     * ¡SOLO PARA DESARROLLO! En producción debería usarse un certificado válido
-     */
     private RestTemplate createRestTemplateWithSSLDisabled() {
         try {
             logger.warn("CREANDO RestTemplate que ignora verificación SSL - ¡SOLO PARA DESARROLLO!");
             
-            // Crear un TrustManager que confía en todos los certificados
             TrustManager[] trustAllCerts = new TrustManager[]{
                 new X509TrustManager() {
                     public X509Certificate[] getAcceptedIssuers() {
@@ -61,14 +105,11 @@ public class CalendarificService {
                 }
             };
 
-            // Crear un SSLContext que usa nuestro TrustManager que confía en todo
             SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
 
-            // Configurar HttpsURLConnection para usar nuestro SSLContext
             HttpsURLConnection.setDefaultSSLSocketFactory(sslContext.getSocketFactory());
             
-            // Crear un HostnameVerifier que acepta todos los hostnames
             HostnameVerifier allHostsValid = (hostname, session) -> true;
             HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
 
@@ -80,16 +121,9 @@ public class CalendarificService {
         }
     }
 
-    /**
-     * Importa los festivos nacionales de España para un año específico.
-     * Primero elimina los festivos existentes del mismo año para evitar duplicados.
-     * @param year El año para el que se importarán los festivos
-     * @return Número de festivos importados
-     */
     public int importNationalHolidays(int year) {
         logger.info("Iniciando importación de festivos nacionales para el año {}", year);
         
-        // Primero eliminamos los festivos nacionales existentes para este año
         int deletedCount = deleteExistingNationalHolidays(year);
         logger.info("Eliminados {} festivos existentes para el año {}", deletedCount, year);
         
@@ -121,7 +155,6 @@ public class CalendarificService {
             int count = 0;
             
             for (Holiday holiday : holidays) {
-                // Solo importar festivos nacionales
                 if (holiday.getType() != null && holiday.getType().contains("National holiday")) {
                     try {
                         ShiftException exception = convertHolidayToException(holiday);
@@ -141,11 +174,6 @@ public class CalendarificService {
         }
     }
     
-    /**
-     * Elimina los festivos nacionales existentes para un año específico
-     * @param year El año para el que se eliminarán los festivos
-     * @return Número de festivos eliminados
-     */
     public int deleteExistingNationalHolidays(int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, Calendar.JANUARY, 1, 0, 0, 0);
@@ -163,11 +191,6 @@ public class CalendarificService {
         return count;
     }
     
-    /**
-     * Verifica si ya existen festivos importados para un año específico
-     * @param year El año para verificar
-     * @return true si ya existen festivos para ese año
-     */
     public boolean holidaysExistForYear(int year) {
         Calendar cal = Calendar.getInstance();
         cal.set(year, Calendar.JANUARY, 1, 0, 0, 0);
@@ -180,9 +203,6 @@ public class CalendarificService {
         return !holidays.isEmpty();
     }
     
-    /**
-     * Convierte un objeto Holiday de Calendarific a un ShiftException
-     */
     private ShiftException convertHolidayToException(Holiday holiday) throws ParseException {
         if (holiday == null) {
             throw new IllegalArgumentException("Holiday no puede ser null");
@@ -192,27 +212,24 @@ public class CalendarificService {
             throw new IllegalArgumentException("Fecha del festivo no válida: " + holiday.getName());
         }
         
-
-        
         ShiftException exception = new ShiftException();
-        exception.setEmployeeId(null); // Aplica a todos los empleados
+        exception.setEmployeeId(null);
         exception.setType("NATIONAL_HOLIDAY");
         exception.setDescription(holiday.getName());
         exception.setAutoGenerated(true);
         
-        // Parsear la fecha ISO
         String isoDate = holiday.getDate().getIso();
         try {
             Date holidayDate = ISO_FORMAT.parse(isoDate);
             
             exception.setStartDate(holidayDate);
-            exception.setEndDate(holidayDate); // Mismo día inicio y fin para festivos de un día
+            exception.setEndDate(holidayDate);
             
-
             return exception;
         } catch (ParseException e) {
             logger.error("Error al parsear fecha ISO '{}' para festivo '{}'", isoDate, holiday.getName());
             throw e;
         }
     }
+    */
 } 

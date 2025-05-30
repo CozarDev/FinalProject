@@ -165,101 +165,67 @@ public class CreateWorkReportFragment extends Fragment {
     }
     
     private void saveWorkReport() {
-        android.util.Log.d("CreateWorkReportFragment", "saveWorkReport() iniciado");
-        
         if (!validateForm()) {
-            android.util.Log.w("CreateWorkReportFragment", "Validación del formulario falló");
             return;
         }
-        
-        android.util.Log.d("CreateWorkReportFragment", "Formulario validado correctamente");
-        
-        // Deshabilitar botón mientras se guarda
-        btnSaveReport.setEnabled(false);
-        btnSaveReport.setText("Guardando...");
-        
-        try {
-            Map<String, Object> workReportData = new HashMap<>();
-            workReportData.put("reportDate", selectedDate.toString());
-            workReportData.put("startTime", selectedStartTime);
-            workReportData.put("endTime", selectedEndTime);
-            workReportData.put("breakDuration", Integer.parseInt(etBreakDuration.getText().toString()));
-            
-            String observations = etObservations.getText().toString().trim();
-            if (!observations.isEmpty()) {
-                workReportData.put("observations", observations);
-            }
-            
-            android.util.Log.d("CreateWorkReportFragment", "Datos del parte preparados: " + workReportData.toString());
-            
-            Call<WorkReport> call = apiService.createWorkReport(workReportData);
-            android.util.Log.d("CreateWorkReportFragment", "Llamada API creada, ejecutando...");
-            
-            call.enqueue(new Callback<WorkReport>() {
-                @Override
-                public void onResponse(Call<WorkReport> call, Response<WorkReport> response) {
-                    android.util.Log.d("CreateWorkReportFragment", "onResponse recibido - Código: " + response.code());
-                    
-                    try {
-                        mainHandler.post(() -> {
-                            try {
-                                btnSaveReport.setEnabled(true);
-                                btnSaveReport.setText("💾 Guardar Parte");
-                                
-                                if (response.isSuccessful()) {
-                                    android.util.Log.d("CreateWorkReportFragment", "Respuesta exitosa - Parte guardado");
-                                    Toast.makeText(getContext(), 
-                                            "Parte de trabajo guardado correctamente", Toast.LENGTH_SHORT).show();
-                                    if (listener != null) {
-                                        android.util.Log.d("CreateWorkReportFragment", "Llamando listener.onWorkReportCreated()");
-                                        listener.onWorkReportCreated();
-                                    } else {
-                                        android.util.Log.w("CreateWorkReportFragment", "Listener es null");
-                                    }
-                                } else {
-                                    android.util.Log.e("CreateWorkReportFragment", "Error en respuesta: " + response.code());
-                                    String errorMessage = "Error al guardar el parte";
-                                    if (response.code() == 400) {
-                                        errorMessage = "Ya existe un parte para esta fecha";
-                                    }
-                                    Toast.makeText(getContext(), errorMessage, Toast.LENGTH_LONG).show();
-                                }
-                            } catch (Exception e) {
-                                android.util.Log.e("CreateWorkReportFragment", "Error en mainHandler.post", e);
-                            }
-                        });
-                    } catch (Exception e) {
-                        android.util.Log.e("CreateWorkReportFragment", "Error en onResponse", e);
-                    }
-                }
 
-                @Override
-                public void onFailure(Call<WorkReport> call, Throwable t) {
-                    android.util.Log.e("CreateWorkReportFragment", "onFailure - Error: " + t.getMessage(), t);
-                    
-                    try {
-                        mainHandler.post(() -> {
-                            try {
-                                btnSaveReport.setEnabled(true);
-                                btnSaveReport.setText("💾 Guardar Parte");
-                                Toast.makeText(getContext(), 
-                                        "Error de conexión: " + t.getMessage(), Toast.LENGTH_LONG).show();
-                            } catch (Exception e) {
-                                android.util.Log.e("CreateWorkReportFragment", "Error en onFailure mainHandler.post", e);
+        // Preparar los datos
+        Map<String, Object> workReportData = new HashMap<>();
+        workReportData.put("reportDate", selectedDate.toString());
+        workReportData.put("startTime", selectedStartTime);
+        workReportData.put("endTime", selectedEndTime);
+        workReportData.put("breakDuration", Integer.parseInt(etBreakDuration.getText().toString()));
+        workReportData.put("observations", etObservations.getText().toString());
+
+        // Llamada a la API
+        Call<WorkReport> call = apiService.createWorkReport(workReportData);
+        call.enqueue(new Callback<WorkReport>() {
+            @Override
+            public void onResponse(Call<WorkReport> call, Response<WorkReport> response) {
+                try {
+                    if (response.isSuccessful()) {
+                        // Ejecutar en el hilo principal
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                if (isAdded() && getContext() != null) {
+                                    Toast.makeText(getContext(), "Parte de trabajo guardado exitosamente", Toast.LENGTH_SHORT).show();
+                                    if (listener != null) {
+                                        listener.onWorkReportCreated();
+                                    }
+                                }
+                            });
+                        }
+                    } else {
+                        android.util.Log.e("CreateWorkReportFragment", "Error en respuesta: " + response.code());
+                        if (getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                if (isAdded() && getContext() != null) {
+                                    Toast.makeText(getContext(), "Error al guardar: " + response.code(), Toast.LENGTH_SHORT).show();
+                                }
+                            });
+                        }
+                    }
+                } catch (Exception e) {
+                    android.util.Log.e("CreateWorkReportFragment", "Error en onResponse", e);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<WorkReport> call, Throwable t) {
+                android.util.Log.e("CreateWorkReportFragment", "onFailure - Error: " + t.getMessage(), t);
+                try {
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+                            if (isAdded() && getContext() != null) {
+                                Toast.makeText(getContext(), "Error de conexión: " + t.getMessage(), Toast.LENGTH_SHORT).show();
                             }
                         });
-                    } catch (Exception e) {
-                        android.util.Log.e("CreateWorkReportFragment", "Error en onFailure", e);
                     }
+                } catch (Exception e) {
+                    android.util.Log.e("CreateWorkReportFragment", "Error en onFailure", e);
                 }
-            });
-            
-        } catch (Exception e) {
-            android.util.Log.e("CreateWorkReportFragment", "Error general en saveWorkReport", e);
-            btnSaveReport.setEnabled(true);
-            btnSaveReport.setText("💾 Guardar Parte");
-            Toast.makeText(getContext(), "Error inesperado: " + e.getMessage(), Toast.LENGTH_LONG).show();
-        }
+            }
+        });
     }
     
     private boolean validateForm() {

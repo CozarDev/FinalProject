@@ -41,9 +41,8 @@ public class WorkReportReminderService {
      */
     @Scheduled(fixedRate = 300000) // 5 minutos = 300,000 ms
     public void checkWorkReportReminders() {
+        logger.info("Verificando recordatorios de partes de trabajo...");
         try {
-            logger.debug("Verificando recordatorios de partes de trabajo...");
-            
             LocalDateTime now = LocalDateTime.now();
             LocalDate today = LocalDate.now();
             

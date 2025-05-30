@@ -2,7 +2,8 @@ package com.proyectofinal.backend.Controllers;
 
 import com.proyectofinal.backend.Models.ShiftException;
 import com.proyectofinal.backend.Repositories.ShiftExceptionRepository;
-import com.proyectofinal.backend.Services.CalendarificService;
+// 🔥 CALENDARIFIC COMENTADO - DESCOMENTA SI QUIERES HABILITAR IMPORTACIÓN DE FESTIVOS 🔥
+// import com.proyectofinal.backend.Services.CalendarificService;
 import com.proyectofinal.backend.Services.ScheduledTasksService;
 import com.proyectofinal.backend.Services.UserService;
 import com.proyectofinal.backend.Services.VacationService;
@@ -22,7 +23,8 @@ import java.util.Map;
 @RequestMapping("/api/holidays")
 public class HolidayController {
 
-    private final CalendarificService calendarificService;
+    // 🔥 CALENDARIFIC COMENTADO - DESCOMENTA SI QUIERES HABILITAR IMPORTACIÓN DE FESTIVOS 🔥
+    // private final CalendarificService calendarificService;
     private final VacationService vacationService;
     private final ShiftExceptionRepository shiftExceptionRepository;
     private final UserService userService;
@@ -30,20 +32,24 @@ public class HolidayController {
     private static final Logger logger = LoggerFactory.getLogger(HolidayController.class);
 
     public HolidayController(
-            CalendarificService calendarificService,
+            // CalendarificService calendarificService,  // 🔥 COMENTADO - Calendarific deshabilitado
             VacationService vacationService,
             ShiftExceptionRepository shiftExceptionRepository,
             UserService userService,
             ScheduledTasksService scheduledTasksService) {
-        this.calendarificService = calendarificService;
+        // this.calendarificService = calendarificService;  // 🔥 COMENTADO - Calendarific deshabilitado
         this.vacationService = vacationService;
         this.shiftExceptionRepository = shiftExceptionRepository;
         this.userService = userService;
         this.scheduledTasksService = scheduledTasksService;
+        
+        logger.info("🚫 HolidayController: Calendarific deshabilitado - Importación automática de festivos no disponible");
+        logger.info("💡 Los festivos pueden añadirse manualmente desde la interfaz de administración");
     }
 
     /**
      * Importa festivos nacionales para un año específico
+     * 🔥 FUNCIONALIDAD DESHABILITADA - Requiere Calendarific API
      */
     @PostMapping("/import-national")
     public ResponseEntity<?> importNationalHolidays(@RequestParam(defaultValue = "0") int year) {
@@ -53,6 +59,18 @@ public class HolidayController {
                     .body("Solo los administradores pueden importar festivos");
         }
         
+        // 🔥 FUNCIONALIDAD DESHABILITADA
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Importación automática de festivos deshabilitada");
+        response.put("reason", "Calendarific API no está configurada");
+        response.put("solution", "Los festivos pueden añadirse manualmente desde la interfaz de administración");
+        response.put("year", year);
+        
+        logger.warn("🚫 Intento de importación de festivos para año {} - Funcionalidad deshabilitada", year);
+        
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+        
+        /* 🔥 CÓDIGO COMENTADO - DESCOMENTA PARA HABILITAR CALENDARIFIC
         // Si no se especifica un año, usar el año actual
         if (year <= 0) {
             year = Calendar.getInstance().get(Calendar.YEAR);
@@ -78,6 +96,7 @@ public class HolidayController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body("No se pudieron importar festivos para el año " + year);
         }
+        */
     }
     
     /**
@@ -261,6 +280,7 @@ public class HolidayController {
     
     /**
      * Endpoint de prueba para verificar la conexión con la API de Calendarific
+     * 🔥 FUNCIONALIDAD DESHABILITADA - Requiere Calendarific API
      */
     @GetMapping("/test-calendarific")
     public ResponseEntity<?> testCalendarificAPI(@RequestParam(defaultValue = "2024") int year) {
@@ -270,6 +290,19 @@ public class HolidayController {
                     .body("Solo los administradores pueden probar la API");
         }
         
+        // 🔥 FUNCIONALIDAD DESHABILITADA
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Prueba de API Calendarific deshabilitada");
+        response.put("reason", "Calendarific API no está configurada");
+        response.put("status", "🚫 Deshabilitado");
+        response.put("año", year);
+        response.put("solution", "Para habilitar: Configura calendarific.api.key en application.properties y descomenta el código");
+        
+        logger.warn("🚫 Intento de prueba de Calendarific API - Funcionalidad deshabilitada");
+        
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+        
+        /* 🔥 CÓDIGO COMENTADO - DESCOMENTA PARA HABILITAR CALENDARIFIC
         try {
             // Intentar importar festivos sin verificar si ya existen
             int count = calendarificService.importNationalHolidays(year);
@@ -292,10 +325,12 @@ public class HolidayController {
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+        */
     }
     
     /**
      * Fuerza la importación de festivos eliminando los existentes primero
+     * 🔥 FUNCIONALIDAD DESHABILITADA - Requiere Calendarific API
      */
     @PostMapping("/force-import-holidays")
     public ResponseEntity<?> forceImportHolidays(@RequestParam(defaultValue = "2024") int year) {
@@ -305,6 +340,18 @@ public class HolidayController {
                     .body("Solo los administradores pueden forzar la importación");
         }
         
+        // 🔥 FUNCIONALIDAD DESHABILITADA
+        Map<String, Object> response = new HashMap<>();
+        response.put("error", "Importación forzada de festivos deshabilitada");
+        response.put("reason", "Calendarific API no está configurada");
+        response.put("year", year);
+        response.put("solution", "Los festivos pueden añadirse manualmente desde la interfaz de administración");
+        
+        logger.warn("🚫 Intento de importación forzada para año {} - Funcionalidad deshabilitada", year);
+        
+        return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE).body(response);
+        
+        /* 🔥 CÓDIGO COMENTADO - DESCOMENTA PARA HABILITAR CALENDARIFIC
         try {
             // Eliminar festivos existentes del año
             int deletedCount = calendarificService.deleteExistingNationalHolidays(year);
@@ -327,6 +374,7 @@ public class HolidayController {
             
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
         }
+        */
     }
     
 
