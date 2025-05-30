@@ -44,6 +44,8 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 public class ManageEmployeesFragment extends Fragment implements EmployeeAdapter.OnEmployeeClickListener {
 
+    private static final String TAG = "ManageEmployeesFragment";
+    
     // Variables para las vistas
     private View rootView;
     private ConstraintLayout listContainer;

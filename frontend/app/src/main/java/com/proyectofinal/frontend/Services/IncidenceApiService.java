@@ -61,7 +61,7 @@ public class IncidenceApiService {
     /**
      * Obtiene todas las incidencias pendientes (solo para empleados del departamento de incidencias)
      */
-    public void getPendingIncidences(IncidenceCallback callback) {
+    public void getPendingIncidences(IncidenceListCallback callback) {
         Call<List<Incidence>> call = retrofitService.getPendingIncidences();
         call.enqueue(new Callback<List<Incidence>>() {
             @Override
@@ -93,7 +93,7 @@ public class IncidenceApiService {
             @Override
             public void onResponse(Call<Incidence> call, Response<Incidence> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess("Incidencia aceptada exitosamente");
+                    callback.onSuccess();
                 } else {
                     String error = "Error aceptando incidencia: " + response.code();
                     Log.e(TAG, error);
@@ -113,13 +113,13 @@ public class IncidenceApiService {
     /**
      * Resuelve una incidencia (solo para empleados del departamento de incidencias)
      */
-    public void resolveIncidence(String incidenceId, Map<String, String> resolutionData, SimpleCallback callback) {
-        Call<Incidence> call = retrofitService.resolveIncidence(incidenceId, resolutionData);
+    public void resolveIncidence(String incidenceId, SimpleCallback callback) {
+        Call<Incidence> call = retrofitService.resolveIncidence(incidenceId);
         call.enqueue(new Callback<Incidence>() {
             @Override
             public void onResponse(Call<Incidence> call, Response<Incidence> response) {
                 if (response.isSuccessful()) {
-                    callback.onSuccess("Incidencia resuelta exitosamente");
+                    callback.onSuccess();
                 } else {
                     String error = "Error resolviendo incidencia: " + response.code();
                     Log.e(TAG, error);

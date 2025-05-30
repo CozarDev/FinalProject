@@ -196,9 +196,9 @@ public class IncidenceDetailFragment extends Fragment {
     private void resolveIncidence() {
         if (currentIncidence == null) return;
 
-        incidenceApiService.resolveIncidence(currentIncidence.getId(), new IncidenceApiService.IncidenceCallback() {
+        incidenceApiService.resolveIncidence(currentIncidence.getId(), new IncidenceApiService.SimpleCallback() {
             @Override
-            public void onSuccess(Incidence updatedIncidence) {
+            public void onSuccess() {
                 Toast.makeText(requireContext(), "Incidencia resuelta exitosamente", Toast.LENGTH_SHORT).show();
                 
                 // Notificar al listener que se resolvió la incidencia

@@ -407,12 +407,12 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     private void performAcceptIncidence(Incidence incidence) {
-        incidenceApiService.acceptIncidence(incidence.getId(), new IncidenceApiService.IncidenceCallback() {
+        incidenceApiService.acceptIncidence(incidence.getId(), new IncidenceApiService.SimpleCallback() {
             @Override
-            public void onSuccess(Incidence updatedIncidence) {
+            public void onSuccess() {
                 Toast.makeText(requireContext(), "Incidencia aceptada exitosamente", Toast.LENGTH_SHORT).show();
-                adapter.updateIncidence(updatedIncidence);
-                notifyParentOfUpdate(updatedIncidence);
+                // Recargar datos para actualizar la lista
+                loadData();
             }
 
             @Override
@@ -423,12 +423,12 @@ public class IncidenceListFragment extends Fragment implements IncidenceAdapter.
     }
 
     private void performResolveIncidence(Incidence incidence) {
-        incidenceApiService.resolveIncidence(incidence.getId(), new IncidenceApiService.IncidenceCallback() {
+        incidenceApiService.resolveIncidence(incidence.getId(), new IncidenceApiService.SimpleCallback() {
             @Override
-            public void onSuccess(Incidence updatedIncidence) {
+            public void onSuccess() {
                 Toast.makeText(requireContext(), "Incidencia resuelta exitosamente", Toast.LENGTH_SHORT).show();
-                adapter.updateIncidence(updatedIncidence);
-                notifyParentOfUpdate(updatedIncidence);
+                // Recargar datos para actualizar la lista
+                loadData();
             }
 
             @Override
