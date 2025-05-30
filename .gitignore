@@ -6,6 +6,7 @@
 
 # Backend - Archivos de configuración con credenciales
 backend/src/main/resources/application.properties
+backend/src/main/resources/application-firebase.properties
 backend/src/main/resources/firebase-service-account.json
 
 # Frontend - Archivos de configuración con URLs y credenciales

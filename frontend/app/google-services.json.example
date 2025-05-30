@@ -1,8 +1,29 @@
 {
+  "_comment": "CONFIGURACIÓN DE FIREBASE PARA ANDROID - COMPLETAMENTE OPCIONAL",
+  "_description": "Este archivo solo es necesario para NOTIFICACIONES PUSH. La app funciona perfectamente sin él.",
+  "_instructions": [
+    "OPCIÓN 1 - DESARROLLO LOCAL (SIN NOTIFICACIONES):",
+    "  • No hagas nada, deja este archivo como está",
+    "  • La app compilará y funcionará normal, solo sin notificaciones push",
+    "",
+    "OPCIÓN 2 - HABILITAR NOTIFICACIONES PUSH:",
+    "  1. Ve a Firebase Console: https://console.firebase.google.com/",
+    "  2. Crea o selecciona tu proyecto",
+    "  3. Ve a Configuración del proyecto > Aplicaciones",
+    "  4. Añade una app Android con el package: com.proyectofinal.frontend",
+    "  5. Descarga el archivo google-services.json",
+    "  6. Copia este archivo como 'google-services.json' (sin .example)",
+    "  7. Sustituye TODO el contenido con el JSON descargado",
+    "  8. Rebuild el proyecto en Android Studio"
+  ],
+  "_logs": [
+    "Sin Firebase: '🚫 Firebase: NO DISPONIBLE - Las notificaciones push están deshabilitadas'",
+    "Con Firebase: '🔥 Firebase: HABILITADO - Notificaciones push configuradas'"
+  ],
   "project_info": {
     "project_number": "YOUR_PROJECT_NUMBER",
-    "project_id": "your-firebase-project-id",
-    "storage_bucket": "your-firebase-project-id.firebasestorage.app"
+    "project_id": "turnado-ab134",
+    "storage_bucket": "turnado-ab134.firebasestorage.app"
   },
   "client": [
     {

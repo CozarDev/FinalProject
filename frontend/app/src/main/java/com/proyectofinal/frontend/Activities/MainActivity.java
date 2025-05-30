@@ -632,77 +632,94 @@ public class MainActivity extends AppCompatActivity {
     
     // Método para inicializar Firebase Cloud Messaging
     private void initializeFirebaseMessaging() {
-        // Solicitar permisos de notificación para Android 13+ (API 33+)
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
-                getPackageManager().PERMISSION_GRANTED) {
-                requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+        try {
+            // Verificar si Firebase está disponible
+            Class.forName("com.google.firebase.messaging.FirebaseMessaging");
+            
+            // Solicitar permisos de notificación para Android 13+ (API 33+)
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS) != 
+                    getPackageManager().PERMISSION_GRANTED) {
+                    requestPermissions(new String[]{android.Manifest.permission.POST_NOTIFICATIONS}, 1001);
+                }
+            }
+            
+            // Inicializar Firebase Messaging
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().getToken()
+                    .addOnCompleteListener(task -> {
+                        if (!task.isSuccessful()) {
+                            Log.w("MainActivity", "Error obteniendo token FCM", task.getException());
+                            return;
+                        }
+
+                        // Obtener nuevo token FCM
+                        String token = task.getResult();
+
+                        // Guardar token localmente
+                        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+                        prefs.edit().putString("FCM_TOKEN", token).apply();
+
+                        // Enviar token al servidor
+                        sendTokenToServer(token);
+                        
+                        Log.i("MainActivity", "🔥 Firebase: HABILITADO - Notificaciones push configuradas");
+                    });
+
+            // Suscribirse a temas generales si es necesario
+            com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("general");
+            
+        } catch (ClassNotFoundException e) {
+            // Firebase no está disponible
+            Log.i("MainActivity", "🚫 Firebase: NO DISPONIBLE - Las notificaciones push están deshabilitadas");
+            Log.i("MainActivity", "💡 Para habilitar notificaciones, configura google-services.json");
+        } catch (Exception e) {
+            // Error general de Firebase
+            Log.w("MainActivity", "⚠️ Error inicializando Firebase: " + e.getMessage());
+            Log.i("MainActivity", "📱 La app funcionará normalmente sin notificaciones push");
+        }
+    }
+     
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == 1001) {
+            if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
+                Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
+            } else {
+                Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
             }
         }
+    }
+     
+    // Método para enviar token FCM al servidor
+    private void sendTokenToServer(String fcmToken) {
+        SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
+        String userId = prefs.getString("USER_ID", "");
+        String jwtToken = prefs.getString("JWT_TOKEN", "");
         
-        FirebaseMessaging.getInstance().getToken()
-                .addOnCompleteListener(task -> {
-                    if (!task.isSuccessful()) {
-                        Log.w("MainActivity", "Error obteniendo token FCM", task.getException());
-                        return;
+        if (!userId.isEmpty() && !jwtToken.isEmpty()) {
+            // Crear request con información del dispositivo
+            String deviceInfo = android.os.Build.MODEL + " (" + android.os.Build.VERSION.RELEASE + ")";
+            
+            // Usar el servicio FCM del ApiClient
+            apiClient.getFCMApiService().registerFCMToken(
+                "Bearer " + jwtToken, 
+                new com.proyectofinal.frontend.Api.FCMApiService.FCMTokenRequest(userId, fcmToken, deviceInfo)
+            ).enqueue(new Callback<String>() {
+                @Override
+                public void onResponse(Call<String> call, Response<String> response) {
+                    if (!response.isSuccessful()) {
+                        Log.e("MainActivity", "Error registrando token FCM: " + response.code());
                     }
-
-                    // Obtener nuevo token FCM
-                    String token = task.getResult();
-
-                    // Guardar token localmente
-                    SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-                    prefs.edit().putString("FCM_TOKEN", token).apply();
-
-                    // Enviar token al servidor
-                    sendTokenToServer(token);
-                });
-
-        // Suscribirse a temas generales si es necesario
-        FirebaseMessaging.getInstance().subscribeToTopic("general");
-     }
-     
-     @Override
-     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-         if (requestCode == 1001) {
-             if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
-                 Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
-             } else {
-                 Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
-             }
-         }
-     }
-     
-     // Método para enviar token FCM al servidor
-     private void sendTokenToServer(String fcmToken) {
-         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
-         String userId = prefs.getString("USER_ID", "");
-         String jwtToken = prefs.getString("JWT_TOKEN", "");
-         
-         if (!userId.isEmpty() && !jwtToken.isEmpty()) {
-             // Crear request con información del dispositivo
-             String deviceInfo = android.os.Build.MODEL + " (" + android.os.Build.VERSION.RELEASE + ")";
-             
-             // Usar el servicio FCM del ApiClient
-             apiClient.getFCMApiService().registerFCMToken(
-                 "Bearer " + jwtToken, 
-                 new com.proyectofinal.frontend.Api.FCMApiService.FCMTokenRequest(userId, fcmToken, deviceInfo)
-             ).enqueue(new Callback<String>() {
-                 @Override
-                 public void onResponse(Call<String> call, Response<String> response) {
-                     if (!response.isSuccessful()) {
-                         Log.e("MainActivity", "Error registrando token FCM: " + response.code());
-                     }
-                 }
-                 
-                 @Override
-                 public void onFailure(Call<String> call, Throwable t) {
-                     Log.e("MainActivity", "Error de conexión registrando token FCM: " + t.getMessage());
-                 }
-             });
-         } else {
-             Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
-         }
-     }
+                }
+                
+                @Override
+                public void onFailure(Call<String> call, Throwable t) {
+                    Log.e("MainActivity", "Error de conexión registrando token FCM: " + t.getMessage());
+                }
+            });
+        } else {
+            Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
+        }
+    }
 }

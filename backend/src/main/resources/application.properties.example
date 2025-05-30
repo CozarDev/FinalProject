@@ -1,27 +1,44 @@
-# Configuración para desarrollo local
+# CONFIGURACIÓN AUTOMÁTICA PARA DESARROLLO LOCAL
+# ================================================
+# Este archivo está listo para usar - solo quita el .example del nombre
+# NO necesitas cambiar ningún valor para que funcione
+# ================================================
+
 spring.application.name=backend
 
-# Base de datos MongoDB local
-spring.data.mongodb.uri=mongodb://localhost:27017/tu_base_de_datos
-spring.data.mongodb.database=tu_base_de_datos
+# Base de datos MongoDB local (se creará automáticamente)
+spring.data.mongodb.uri=mongodb://localhost:27017/turnadoapp_dev
+spring.data.mongodb.database=turnadoapp_dev
 
-# Configuración de seguridad JWT
-jwt.secret=tu-clave-secreta-jwt-muy-segura-aqui
+# Configuración de seguridad JWT (valores seguros para desarrollo)
+jwt.secret=clave-super-secreta-desarrollo-local-turnadoapp-2024-segura-jwt
 jwt.expiration=86400000
 
-# Configuración de Calendarific
-calendarific.api.key=tu-api-key-de-calendarific
+# API Key para días festivos (opcional - puedes dejarlo así)
+calendarific.api.key=demo-key-para-desarrollo
 
-# Puerto del servidor
+# Puerto del servidor (backend se ejecutará en http://localhost:8080)
 server.port=8080
 
-# Configuración CORS para desarrollo
+# Configuración CORS para permitir el frontend Android
 cors.allowed.origins=*
 
-# Logs para desarrollo
+# Logs para desarrollo (más detallados)
 logging.level.com.proyectofinal=DEBUG
 logging.level.org.springframework.security=WARN
+logging.level.org.springframework.data.mongodb=INFO
 logging.pattern.console=%d{yyyy-MM-dd HH:mm:ss} - %msg%n
 
-# Deshabilitar JPA (usando MongoDB)
-spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration 
+# Configuración de Firebase (opcional para desarrollo local)
+firebase.project.id=turnado-dev-local
+
+# Deshabilitar JPA (usamos MongoDB)
+spring.autoconfigure.exclude=org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+
+# ================================================
+# INSTRUCCIONES DE USO:
+# 1. Copia este archivo como 'application.properties' (sin .example)
+# 2. Instala y ejecuta MongoDB localmente en puerto 27017
+# 3. Ejecuta: mvn spring-boot:run
+# 4. ¡La API estará lista en http://localhost:8080/!
+# ================================================ 

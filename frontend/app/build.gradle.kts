@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
-    id("com.google.gms.google-services")
+    // Plugin de Google Services solo si existe el archivo google-services.json
+    if (file("google-services.json").exists()) {
+        id("com.google.gms.google-services")
+    }
 }
 
 android {
@@ -59,10 +62,12 @@ dependencies {
     // TapTargetView para guías visuales
     implementation(libs.tap.target.view)
     
-    // Firebase dependencies
-    implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
-    implementation("com.google.firebase:firebase-messaging")
-    implementation("com.google.firebase:firebase-analytics")
+    // Firebase dependencies - Solo si google-services.json existe
+    if (file("google-services.json").exists()) {
+        implementation(platform("com.google.firebase:firebase-bom:32.7.0"))
+        implementation("com.google.firebase:firebase-messaging")
+        implementation("com.google.firebase:firebase-analytics")
+    }
     
     // Core library desugaring para compatibilidad con Java 8
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")

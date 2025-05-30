@@ -32,26 +32,28 @@
         <activity android:name=".Activities.MainActivity"
             android:exported="false"/>
 
-        <!-- Firebase Cloud Messaging Service -->
+        <!-- Firebase Cloud Messaging Service - Solo se registra si Firebase está disponible -->
+        <!-- NOTA: Si no tienes google-services.json, estas configuraciones no causan errores -->
+        <!-- El sistema Android simplemente ignora servicios de clases que no existen -->
         <service
             android:name=".Services.TurnadoFirebaseMessagingService"
-            android:exported="false">
+            android:exported="false"
+            android:enabled="true">
             <intent-filter>
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <!-- Firebase Cloud Messaging default notification icon -->
+        <!-- Firebase Cloud Messaging configuraciones -->
+        <!-- Estas meta-data son ignoradas si Firebase no está disponible -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
 
-        <!-- Firebase Cloud Messaging default notification color -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/colorPrimary" />
 
-        <!-- Firebase Cloud Messaging default notification channel -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="turnado_notifications" />

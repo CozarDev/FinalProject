@@ -5,36 +5,44 @@ import android.content.SharedPreferences;
 import android.util.Log;
 
 /**
- * CONFIGURACIÓN AUTOMÁTICA - NO REQUIERE CAMBIOS PARA DESARROLLO LOCAL
+ * CONFIGURACIÓN AUTOMÁTICA DE TURNADOAPP - ¡FUNCIONA INMEDIATAMENTE!
+ * ================================================================
  * 
- * Este archivo está configurado para funcionar automáticamente con:
- * - Backend local en http://10.0.2.2:8080/ (emulador Android)
- * - Backend local en http://localhost:8080/ (para dispositivos físicos, cambiar IP)
+ * INSTRUCCIONES SIMPLES:
+ * 1. Copia este archivo como 'ApiConfig.java' (quita el .example)
+ * 2. ¡Ya está! No necesitas cambiar NADA más
+ * 3. La app se conectará automáticamente al backend local
  * 
- * PARA USAR:
- * 1. Copia este archivo a ApiConfig.java
- * 2. ¡Ya está! No necesitas cambiar nada más
- * 3. El proyecto funcionará automáticamente en local
+ * FUNCIONAMIENTO AUTOMÁTICO:
+ * - Backend local: http://10.0.2.2:8080/ (emulador Android)
+ * - Backend local: http://192.168.x.x:8080/ (dispositivo físico - cambiar IP)
+ * - La app detecta automáticamente si está en emulador o dispositivo real
  * 
- * PARA CAMBIAR A PRODUCCIÓN (opcional):
- * - Cambia DEFAULT_PRODUCTION_URL por tu URL real
- * - Usa apiConfig.switchToProduction() en el código
+ * PRODUCCIÓN (opcional):
+ * - Cambia PRODUCTION_URL por tu URL real de Cloud Run
+ * - Usa apiConfig.switchToProduction() para cambiar a producción
+ * 
+ * ================================================================
  */
 public class ApiConfig {
-    private static final String TAG = "ApiConfig";
-    private static final String PREFS_NAME = "ApiConfig";
+    private static final String TAG = "TurnadoApp-ApiConfig";
+    private static final String PREFS_NAME = "TurnadoAppConfig";
     private static final String KEY_BASE_URL = "base_url";
+    private static final String KEY_ENVIRONMENT = "environment";
     
-    // URLs por defecto - FUNCIONAN AUTOMÁTICAMENTE
-    private static final String DEFAULT_LOCAL_URL = "http://10.0.2.2:8080/";
-    private static final String DEFAULT_PRODUCTION_URL = "https://your-backend-url.run.app/"; // Cambiar por tu URL real
+    // URLs CONFIGURADAS Y LISTAS PARA USAR
+    private static final String EMULATOR_URL = "http://10.0.2.2:8080/";           // Para emulador Android
+    private static final String LOCAL_DEVICE_URL = "http://192.168.1.100:8080/"; // Para dispositivo físico (cambiar IP)
+    private static final String PRODUCTION_URL = "https://turnado-app.run.app/";  // Cambiar por tu URL real
     
     private static ApiConfig instance;
     private Context context;
     private String baseUrl;
+    private boolean isEmulator;
     
     private ApiConfig(Context context) {
         this.context = context.getApplicationContext();
+        this.isEmulator = detectEmulator();
         loadConfiguration();
     }
     
@@ -45,19 +53,34 @@ public class ApiConfig {
         return instance;
     }
     
+    /**
+     * Detecta automáticamente si estamos en un emulador
+     */
+    private boolean detectEmulator() {
+        return android.os.Build.FINGERPRINT.contains("generic")
+                || android.os.Build.FINGERPRINT.contains("emulator")
+                || android.os.Build.MODEL.contains("Emulator")
+                || android.os.Build.MODEL.contains("Android SDK");
+    }
+    
     private void loadConfiguration() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        
-        // Obtener URL guardada o usar la local por defecto
         String savedUrl = prefs.getString(KEY_BASE_URL, null);
         
         if (savedUrl != null && !savedUrl.isEmpty()) {
             baseUrl = savedUrl;
-            Log.d(TAG, "URL cargada desde preferencias: " + baseUrl);
+            Log.i(TAG, "URL cargada desde preferencias: " + baseUrl);
         } else {
-            // SIEMPRE usar URL local por defecto para que funcione inmediatamente
-            baseUrl = DEFAULT_LOCAL_URL;
-            Log.d(TAG, "Usando URL local por defecto: " + baseUrl);
+            // DETECCIÓN AUTOMÁTICA - ¡FUNCIONA SIN CONFIGURACIÓN!
+            if (isEmulator) {
+                baseUrl = EMULATOR_URL;
+                Log.i(TAG, "EMULADOR detectado - usando: " + baseUrl);
+            } else {
+                baseUrl = LOCAL_DEVICE_URL;
+                Log.i(TAG, "DISPOSITIVO FÍSICO detectado - usando: " + baseUrl);
+                Log.w(TAG, "NOTA: Si no funciona, cambia la IP en LOCAL_DEVICE_URL por la IP de tu ordenador");
+            }
+            saveUrl(baseUrl);
         }
     }
     
@@ -67,47 +90,84 @@ public class ApiConfig {
     
     public void setBaseUrl(String url) {
         if (url != null && !url.isEmpty()) {
-            // Asegurar que la URL termine con /
             if (!url.endsWith("/")) {
                 url += "/";
             }
-            
             this.baseUrl = url;
-            
-            // Guardar en preferencias
-            SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            prefs.edit().putString(KEY_BASE_URL, url).apply();
-            
-            Log.i(TAG, "URL base actualizada: " + url);
+            saveUrl(url);
+            Log.i(TAG, "URL base actualizada manualmente: " + url);
         }
+    }
+    
+    private void saveUrl(String url) {
+        SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        prefs.edit().putString(KEY_BASE_URL, url).apply();
     }
     
     public void resetToDefault() {
         SharedPreferences prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-        prefs.edit().remove(KEY_BASE_URL).apply();
+        prefs.edit().clear().apply();
         loadConfiguration();
-        Log.i(TAG, "URL base restablecida a valor por defecto: " + baseUrl);
+        Log.i(TAG, "Configuración restablecida a valores automáticos");
+    }
+    
+    public boolean isEmulatorMode() {
+        return isEmulator;
     }
     
     public boolean isDevelopmentMode() {
-        return baseUrl.equals(DEFAULT_LOCAL_URL);
+        return baseUrl.equals(EMULATOR_URL) || baseUrl.equals(LOCAL_DEVICE_URL);
     }
     
-    public String getLocalUrl() {
-        return DEFAULT_LOCAL_URL;
-    }
-    
-    public String getProductionUrl() {
-        return DEFAULT_PRODUCTION_URL;
-    }
-    
-    // Método para cambiar rápidamente a producción
+    // MÉTODOS RÁPIDOS PARA CAMBIAR AMBIENTE
     public void switchToProduction() {
-        setBaseUrl(DEFAULT_PRODUCTION_URL);
+        setBaseUrl(PRODUCTION_URL);
+        Log.i(TAG, "Cambiado a PRODUCCIÓN: " + PRODUCTION_URL);
     }
     
-    // Método para volver a desarrollo local
     public void switchToLocal() {
-        setBaseUrl(DEFAULT_LOCAL_URL);
+        String localUrl = isEmulator ? EMULATOR_URL : LOCAL_DEVICE_URL;
+        setBaseUrl(localUrl);
+        Log.i(TAG, "Cambiado a DESARROLLO LOCAL: " + localUrl);
+    }
+    
+    public void switchToEmulator() {
+        setBaseUrl(EMULATOR_URL);
+        Log.i(TAG, "Forzado modo EMULADOR: " + EMULATOR_URL);
+    }
+    
+    public void switchToDevice(String deviceIp) {
+        String deviceUrl = "http://" + deviceIp + ":8080/";
+        setBaseUrl(deviceUrl);
+        Log.i(TAG, "Cambiado a DISPOSITIVO con IP: " + deviceUrl);
+    }
+    
+    // GETTERS DE URLs
+    public String getEmulatorUrl() { return EMULATOR_URL; }
+    public String getLocalDeviceUrl() { return LOCAL_DEVICE_URL; }
+    public String getProductionUrl() { return PRODUCTION_URL; }
+    
+    /**
+     * Método para verificar conectividad (usar en AsyncTask o Thread)
+     */
+    public boolean testConnection() {
+        try {
+            java.net.URL url = new java.net.URL(baseUrl + "api/test");
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setRequestMethod("GET");
+            
+            int responseCode = connection.getResponseCode();
+            boolean isConnected = (responseCode == 200);
+            
+            Log.i(TAG, "Test de conexión a " + baseUrl + " - Resultado: " + 
+                  (isConnected ? "ÉXITO" : "FALLO (" + responseCode + ")"));
+            
+            return isConnected;
+        } catch (Exception e) {
+            Log.e(TAG, "Error en test de conexión: " + e.getMessage());
+            return false;
+        }
     }
 } 

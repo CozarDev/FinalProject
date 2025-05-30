@@ -24,8 +24,10 @@ public class FirebaseConfig {
     @Value("${firebase.credentials.path:}")
     private String credentialsPath;
 
-    @Value("${firebase.project.id:turnado-ab134}")
+    @Value("${firebase.project.id:turnado-dev-local}")
     private String projectId;
+
+    private boolean firebaseEnabled = false;
 
     @PostConstruct
     public void initializeFirebase() {
@@ -33,69 +35,99 @@ public class FirebaseConfig {
             // Verificar si Firebase ya está inicializado
             if (FirebaseApp.getApps().isEmpty()) {
                 
-                logger.info("Iniciando configuración de Firebase...");
+                logger.info("Intentando inicializar Firebase...");
                 logger.info("Project ID configurado: {}", projectId);
                 
                 // Configuración usando variables de entorno o archivo de credenciales
                 String firebaseCredentials = System.getenv("FIREBASE_CREDENTIALS");
                 
-                GoogleCredentials credentials;
+                GoogleCredentials credentials = null;
                 
                 if (firebaseCredentials != null && !firebaseCredentials.isEmpty()) {
                     // Usar credenciales desde variable de entorno
                     logger.info("Inicializando Firebase con credenciales desde variable de entorno");
-                    InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
-                    credentials = GoogleCredentials.fromStream(credentialsStream);
+                    try {
+                        InputStream credentialsStream = new ByteArrayInputStream(firebaseCredentials.getBytes());
+                        credentials = GoogleCredentials.fromStream(credentialsStream);
+                        logger.info("Credenciales desde variable de entorno cargadas exitosamente");
+                    } catch (Exception e) {
+                        logger.warn("Error cargando credenciales desde variable de entorno: {}", e.getMessage());
+                    }
                 } else {
-                    // Usar credenciales desde archivo en classpath
+                    // Intentar usar credenciales desde archivo en classpath
                     logger.info("Buscando archivo firebase-service-account.json en classpath...");
                     InputStream serviceAccount = getClass().getClassLoader()
                             .getResourceAsStream("firebase-service-account.json");
                     
-                    if (serviceAccount == null) {
-                        logger.warn("No se encontró archivo firebase-service-account.json, intentando credenciales por defecto");
+                    if (serviceAccount != null) {
                         try {
-                            credentials = GoogleCredentials.getApplicationDefault();
-                            logger.info("Credenciales por defecto cargadas exitosamente");
+                            logger.info("Archivo firebase-service-account.json encontrado, cargando credenciales...");
+                            credentials = GoogleCredentials.fromStream(serviceAccount);
+                            logger.info("Credenciales cargadas exitosamente desde archivo");
                         } catch (Exception e) {
-                            logger.error("Error cargando credenciales por defecto: {}", e.getMessage());
-                            throw new RuntimeException("No se pudieron cargar las credenciales de Firebase", e);
+                            logger.warn("Error cargando credenciales desde archivo: {}", e.getMessage());
                         }
                     } else {
-                        logger.info("Archivo firebase-service-account.json encontrado, cargando credenciales...");
-                        credentials = GoogleCredentials.fromStream(serviceAccount);
-                        logger.info("Credenciales cargadas exitosamente desde archivo");
+                        logger.info("No se encontró archivo firebase-service-account.json");
+                        
+                        // Intentar credenciales por defecto solo si estamos en Cloud Run
+                        String isCloudRun = System.getenv("K_SERVICE");
+                        if (isCloudRun != null) {
+                            logger.info("Detectado Cloud Run, intentando credenciales por defecto...");
+                            try {
+                                credentials = GoogleCredentials.getApplicationDefault();
+                                logger.info("Credenciales por defecto cargadas exitosamente");
+                            } catch (Exception e) {
+                                logger.warn("Error cargando credenciales por defecto: {}", e.getMessage());
+                            }
+                        } else {
+                            logger.info("No estamos en Cloud Run, Firebase será deshabilitado");
+                        }
                     }
                 }
                 
-                FirebaseOptions options = FirebaseOptions.builder()
-                        .setCredentials(credentials)
-                        .setProjectId(projectId)
-                        .build();
-                
-                FirebaseApp app = FirebaseApp.initializeApp(options);
-                logger.info("Firebase inicializado exitosamente con project ID: {}", app.getOptions().getProjectId());
+                // Si tenemos credenciales, inicializar Firebase
+                if (credentials != null) {
+                    FirebaseOptions options = FirebaseOptions.builder()
+                            .setCredentials(credentials)
+                            .setProjectId(projectId)
+                            .build();
+                    
+                    FirebaseApp app = FirebaseApp.initializeApp(options);
+                    firebaseEnabled = true;
+                    logger.info("✅ Firebase inicializado exitosamente con project ID: {}", app.getOptions().getProjectId());
+                } else {
+                    firebaseEnabled = false;
+                    logger.warn("⚠️  Firebase NO inicializado - Las notificaciones push no estarán disponibles");
+                    logger.info("💡 Para habilitar Firebase, configura firebase-service-account.json o variables de entorno");
+                }
                 
             } else {
+                firebaseEnabled = true;
                 logger.info("Firebase ya está inicializado");
                 FirebaseApp defaultApp = FirebaseApp.getInstance();
                 logger.info("Project ID actual: {}", defaultApp.getOptions().getProjectId());
             }
             
-        } catch (IOException e) {
-            logger.error("Error de IO inicializando Firebase: {}", e.getMessage(), e);
-            throw new RuntimeException("Error inicializando Firebase", e);
         } catch (Exception e) {
-            logger.error("Error general inicializando Firebase: {}", e.getMessage(), e);
-            throw new RuntimeException("Error inicializando Firebase", e);
+            firebaseEnabled = false;
+            logger.error("❌ Error inicializando Firebase (continuando sin notificaciones): {}", e.getMessage());
+            logger.info("💡 El backend funcionará normalmente, pero sin notificaciones push");
+        }
+        
+        // Mostrar estado final
+        if (firebaseEnabled) {
+            logger.info("🔥 Firebase: HABILITADO - Notificaciones push disponibles");
+        } else {
+            logger.info("🚫 Firebase: DESHABILITADO - Solo funciones básicas disponibles");
         }
     }
 
     @Bean
     public Firestore firestore() {
-        if (FirebaseApp.getApps().isEmpty()) {
-            logger.warn("Firebase no está inicializado, no se puede crear bean Firestore");
-            return null; // Firebase no inicializado
+        if (!firebaseEnabled || FirebaseApp.getApps().isEmpty()) {
+            logger.info("Firebase no está disponible, bean Firestore no creado");
+            return null;
         }
         try {
             Firestore firestore = FirestoreClient.getFirestore();
@@ -105,5 +137,9 @@ public class FirebaseConfig {
             logger.error("Error creando bean Firestore: {}", e.getMessage(), e);
             return null;
         }
+    }
+    
+    public boolean isFirebaseEnabled() {
+        return firebaseEnabled;
     }
 } 

@@ -1,241 +1,209 @@
-# 🏢 TurnadoApp - Sistema de Gestión de Turnos de Trabajo
+# 🚀 TurnadoApp - Sistema de Gestión de Turnos de Trabajo
 
-**Proyecto Final de Grado Superior en Desarrollo de Aplicaciones Multiplataforma**
+Una aplicación completa para gestionar turnos de trabajo, empleados y horarios, desarrollada con **Spring Boot** (backend) y **Android nativo** (frontend).
 
-Un sistema completo de gestión de turnos de trabajo que permite a las empresas administrar empleados, departamentos, turnos, partes de trabajo e incidencias laborales de manera eficiente.
+![TurnadoApp](https://img.shields.io/badge/TurnadoApp-v1.0-blue) ![Java](https://img.shields.io/badge/Java-17-orange) ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-green) ![Android](https://img.shields.io/badge/Android-API%2021+-brightgreen) ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-green)
 
-## 📋 **Descripción del Proyecto**
+## 📋 Características
 
-TurnadoApp es una solución integral que combina un backend robusto con una aplicación móvil Android para gestionar todos los aspectos relacionados con los turnos de trabajo en una empresa.
+- **Gestión de Empleados**: Crear, editar y administrar empleados
+- **Gestión de Turnos**: Asignación y control de turnos de trabajo
+- **Autenticación JWT**: Sistema seguro de login y registro
+- **Notificaciones Push**: Firebase Cloud Messaging
+- **Interfaz Android Nativa**: Material Design
+- **API REST**: Backend completo con Spring Boot
+- **Base de Datos MongoDB**: Almacenamiento eficiente
 
-### **🎯 Funcionalidades Principales**
+## ⚡ INSTALACIÓN RÁPIDA - ¡SIN SCRIPTS!
 
-- **👥 Gestión de Empleados**: CRUD completo con roles y departamentos
-- **🏢 Gestión de Departamentos**: Organización empresarial
-- **⏰ Gestión de Turnos**: Asignación y control de horarios
-- **📝 Partes de Trabajo**: Registro de jornadas laborales
-- **🚨 Gestión de Incidencias**: Control de problemas laborales
-- **🔐 Autenticación JWT**: Sistema seguro con roles diferenciados
-- **📱 App Android**: Interfaz móvil moderna y funcional
+### 🎯 Solo necesitas hacer esto:
 
-## 🏗️ **Arquitectura del Sistema**
+### 1️⃣ **BACKEND** (API REST)
 
-### **Backend (Spring Boot)**
-- **Framework**: Spring Boot 3.4
-- **Base de Datos**: MongoDB Atlas
-- **Autenticación**: JWT con roles (ADMIN, DEPARTMENT_HEAD, EMPLOYEE)
-- **API**: REST con documentación completa
-- **Despliegue**: Google Cloud Run
-- **Seguridad**: CORS configurado, validaciones robustas
+```bash
+# 1. Clona el repositorio
+git clone url que aparece en el botón verde del repositorio o descargar zip
+cd FinalProject/backend
 
-### **Frontend (Android)**
-- **Lenguaje**: Java nativo
-- **UI**: Material Design
-- **Arquitectura**: Fragmentos con ViewPager2
-- **Navegación**: BottomNavigation + TabLayout
-- **API**: Retrofit para comunicación con backend
+# 2. Copia el archivo de configuración (quita .example)
+cp src/main/resources/application.properties.example src/main/resources/application.properties
 
-## 🚀 **Instalación y Configuración**
+# 3. Instala y ejecuta MongoDB localmente y crea un instancia para la base de datos
+# Windows: descarga desde https://www.mongodb.com/try/download/community
+# macOS: brew install mongodb-community
+# Ubuntu: sudo apt install mongodb
 
-### **📋 Prerrequisitos**
-
-- **Java 17+** (para backend)
-- **Android Studio** (para frontend)
-- **MongoDB** (local o Atlas)
-- **Git**
-
-### **⚡ Configuración Rápida**
-
-1. **Clonar el repositorio**:
-   ```bash
-   git clone <url-del-repositorio>
-   cd Proyecto_Final
-   ```
-
-2. **Ejecutar script de configuración**:
-   
-   **En Windows**:
-   ```cmd
-   setup.bat
-   ```
-   
-   **En Linux/Mac**:
-   ```bash
-   chmod +x setup.sh
-   ./setup.sh
-   ```
-
-3. **Configurar archivos de ejemplo**:
-   - El script copiará automáticamente los archivos `.example`
-   - Edita las configuraciones según tu entorno
-
-### **🔧 Configuración Manual**
-
-#### **Backend**
-
-1. **Configurar `application.properties`**:
-   ```bash
-   cd backend/src/main/resources
-   cp application.properties.example application.properties
-   ```
-
-2. **Configurar Firebase** (opcional):
-   ```bash
-   cp firebase-service-account.json.example firebase-service-account.json
-   ```
-
-3. **Ejecutar backend**:
-   ```bash
-   cd backend
-   ./mvnw spring-boot:run
-   ```
-
-#### **Frontend**
-
-1. **Configurar ApiConfig**:
-   ```bash
-   cd frontend/app/src/main/java/com/proyectofinal/frontend/Config
-   cp ApiConfig.java.example ApiConfig.java
-   ```
-
-2. **Configurar Google Services** (opcional):
-   ```bash
-   cd frontend/app
-   cp google-services.json.example google-services.json
-   ```
-
-3. **Abrir en Android Studio**:
-   - Sync Project
-   - Run en emulador o dispositivo
-
-## 🌐 **URLs y Endpoints**
-
-### **Backend (Desarrollo)**
-- **Local**: `http://localhost:8080`
-
-### **Principales Endpoints**
-- `POST /api/auth/login` - Autenticación
-- `GET /api/employees` - Listar empleados
-- `POST /api/work-reports` - Crear parte de trabajo
-- `GET /api/incidents` - Listar incidencias
-- `GET /api/shifts` - Gestión de turnos
-
-### **Frontend (Android)**
-- **Emulador**: Se conecta a `http://10.0.2.2:8080`
-- **Dispositivo físico**: Configurar IP local del backend
-
-## 👥 **Roles y Permisos**
-
-### **🔴 ADMIN**
-- Acceso completo al sistema
-- Gestión de empleados y departamentos
-- Configuración de turnos
-- Supervisión general
-
-### **🟡 DEPARTMENT_HEAD**
-- Gestión de empleados de su departamento
-- Revisión de partes de trabajo
-- Gestión de incidencias departamentales
-
-### **🟢 EMPLOYEE**
-- Crear partes de trabajo propios
-- Ver turnos asignados
-- Reportar incidencias
-
-## 📱 **Funcionalidades de la App Android**
-
-### **🏠 Home**
-- Dashboard con resumen de información
-- Accesos rápidos a funciones principales
-
-### **📝 Work Reports**
-- Listado de partes de trabajo
-- Creación de nuevos partes
-- Refresh automático
-- Validaciones de fecha y horario
-
-### **🚨 Incidencias**
-- Gestión de incidencias laborales
-- Filtros por estado y tipo
-- Asignación y seguimiento
-
-### **⚙️ Administración** (solo ADMIN)
-- Gestión de empleados
-- Configuración de departamentos
-- Asignación de turnos
-
-## 🔧 **Características Técnicas**
-
-### **Backend**
-- **Validaciones**: Robustas en todos los endpoints
-- **Manejo de Errores**: Respuestas consistentes
-- **Logs**: Sistema completo de logging
-- **Seguridad**: JWT con expiración configurable
-- **CORS**: Configurado para desarrollo y producción
-
-### **Frontend**
-- **Refresh Automático**: Los datos se actualizan automáticamente
-- **Manejo de Estados**: Validaciones para evitar crashes
-- **UI Responsiva**: Adaptada a diferentes tamaños de pantalla
-- **Navegación Fluida**: Transiciones suaves entre fragmentos
-
-## 🐛 **Solución de Problemas**
-
-### **Problemas Comunes**
-
-1. **Token JWT Expirado**:
-   - La app redirige automáticamente al login
-   - Configurar tiempo de expiración en `application.properties`
-
-2. **Lista no se actualiza**:
-   - Implementado refresh automático en `onResume()`
-   - SwipeRefresh disponible en todas las listas
-
-3. **Error de conexión**:
-   - Verificar que el backend esté ejecutándose
-   - Comprobar la URL en `ApiConfig.java`
-
-### **Logs y Debugging**
-
-- **Backend**: Logs en consola con nivel DEBUG
-- **Frontend**: Logs en Logcat con tags específicos
-- **Filtros útiles**: `WorkReportListFragment`, `MainActivity`, `ApiClient`
-
-## 📚 **Estructura del Proyecto**
-
-```
-Proyecto_Final/
-├── backend/                 # Spring Boot API
-│   ├── src/main/java/      # Código fuente Java
-│   ├── src/main/resources/ # Configuraciones
-│   └── pom.xml            # Dependencias Maven
-├── frontend/               # Aplicación Android
-│   ├── app/src/main/      # Código fuente Android
-│   └── build.gradle       # Configuración Gradle
-├── setup.sh               # Script configuración Linux/Mac
-├── setup.bat              # Script configuración Windows
-└── README.md              # Este archivo
+# 4. Ejecuta el backend
+./mvnw spring-boot:run
 ```
 
+**¡Ya está!** El backend estará ejecutándose en `http://localhost:8080`
 
-## 🤝 **Contribución**
+### 2️⃣ **FRONTEND** (Aplicación Android)
 
-Este es un proyecto académico de Grado Superior. Para sugerencias o mejoras:
+```bash
+# 1. Ve al directorio frontend
+cd ../frontend
 
-1. Fork del repositorio
-2. Crear rama feature (`git checkout -b feature/nueva-funcionalidad`)
-3. Commit cambios (`git commit -am 'Añadir nueva funcionalidad'`)
-4. Push a la rama (`git push origin feature/nueva-funcionalidad`)
-5. Crear Pull Request
+# 2. Copia el archivo de configuración (quita .example)
+cp app/src/main/java/com/proyectofinal/frontend/config/ApiConfig.java.example app/src/main/java/com/proyectofinal/frontend/config/ApiConfig.java
 
-## 📄 **Licencia**
+# 3. Abre el proyecto en Android Studio
+# File > Open > Selecciona la carpeta 'frontend'
 
-Proyecto académico - Grado Superior en Desarrollo de Aplicaciones Multiplataforma
+# 4. Ejecuta la aplicación
+# Presiona el botón ▶️ (Run) en Android Studio
+```
 
-
-**Proyecto Final de Grado Superior**  
-**Desarrollo de Aplicaciones Multiplataforma**
+**¡Ya está!** La app se conectará automáticamente al backend local.
 
 ---
 
-⭐ **¡Gracias por revisar TurnadoApp!** ⭐
+## 🔧 CONFIGURACIÓN AUTOMÁTICA
+
+### ✅ **FUNCIONA SIN CAMBIOS**
+
+Los archivos `.example` están **completamente configurados** para funcionar inmediatamente:
+
+- **Backend**: Se conecta a MongoDB local en puerto 27017
+- **Frontend**: Se conecta automáticamente al backend (detecta emulador vs dispositivo)
+- **Base de datos**: Se crea automáticamente al iniciar el backend
+- **Firebase**: ⚠️ **COMPLETAMENTE OPCIONAL** - Solo necesario para notificaciones push
+
+### 📱 **Detección Automática Android**
+
+El frontend detecta automáticamente:
+- **Emulador Android**: Usa `http://10.0.2.2:8080/`
+- **Dispositivo físico**: Usa `http://192.168.1.100:8080/` (cambiar IP si es necesario)
+
+### 🔥 **Firebase (Notificaciones Push) - OPCIONAL**
+
+Firebase **NO es necesario** para que el proyecto funcione. Si no lo configuras:
+
+- ✅ **Funcionará**: Login, registro, empleados, turnos, todas las funciones principales
+- ❌ **No funcionará**: Solo las notificaciones push
+
+**Para habilitar notificaciones push:**
+
+**Backend:**
+1. Ve a [Firebase Console](https://console.firebase.google.com/)
+2. Crea un proyecto
+3. Ve a Configuración > Cuentas de servicio
+4. Descarga `firebase-service-account.json`
+5. Copia el archivo a `backend/src/main/resources/`
+
+**Frontend Android:**
+1. En el mismo proyecto Firebase
+2. Ve a Configuración > Aplicaciones
+3. Añade una app Android con package: `com.proyectofinal.frontend`
+4. Descarga `google-services.json`
+5. Copia el archivo a `frontend/app/`
+6. Rebuild el proyecto en Android Studio
+
+**Logs que verás:**
+
+**Backend:**
+- Con Firebase: `🔥 Firebase: HABILITADO - Notificaciones push disponibles`
+- Sin Firebase: `🚫 Firebase: DESHABILITADO - Solo funciones básicas disponibles`
+
+**Frontend Android:**
+- Con Firebase: `🔥 Firebase: HABILITADO - Notificaciones push configuradas`
+- Sin Firebase: `🚫 Firebase: NO DISPONIBLE - Las notificaciones push están deshabilitadas`
+
+**¡Ambos casos son completamente normales y funcionales!**
+
+---
+
+## 📁 Estructura del Proyecto
+
+```
+TurnadoApp/
+├── backend/                          # API REST con Spring Boot
+│   ├── src/main/resources/
+│   │   ├── application.properties.example          # ✅ Configuración lista para usar
+│   │   └── firebase-service-account.json.example   # ⚠️ OPCIONAL (solo para notificaciones push)
+│   └── pom.xml                       # Dependencias Maven
+├── frontend/                         # Aplicación Android
+│   ├── app/src/main/java/com/proyectofinal/frontend/config/
+│   │   └── ApiConfig.java.example    # ✅ Configuración automática
+│   └── build.gradle                  # Configuración Android
+└── README.md                         # Este archivo
+```
+
+---
+
+## 🛠️ Tecnologías Utilizadas
+
+### Backend
+- **Java 21**
+- **Spring Boot 3.x**
+- **Spring Security** (JWT)
+- **Spring Data MongoDB**
+- **Maven**
+- **Firebase Admin SDK**
+
+### Frontend
+- **Android SDK**
+- **Java**
+- **Material Design**
+- **Retrofit** (HTTP client)
+- **Firebase FCM**
+
+### Base de Datos
+- **MongoDB 7.0+**
+
+---
+
+## 🔐 Configuración de Seguridad
+
+### JWT (JSON Web Tokens)
+- **Clave secreta**: Configurada automáticamente para desarrollo
+- **Expiración**: 24 horas
+- **Headers**: `Authorization: Bearer <token>`
+
+### CORS
+- **Desarrollo**: Permite todas las origenes (`*`)
+
+---
+
+## 🐛 Troubleshooting
+
+### Backend no se conecta a MongoDB
+```bash
+# Verifica que MongoDB esté ejecutándose
+mongosh # Si conecta, MongoDB está activo
+
+# Si no está activo:
+# Windows: Inicia el servicio MongoDB
+# macOS/Linux: sudo systemctl start mongod
+```
+
+### Frontend no se conecta al backend
+```java
+// Verifica la IP en ApiConfig.java
+// Para dispositivo físico, cambia la IP por la de tu ordenador:
+private static final String LOCAL_DEVICE_URL = "http://TU_IP_AQUI:8080/";
+
+// Encuentra tu IP:
+// Windows: ipconfig
+// macOS/Linux: ifconfig
+```
+
+### Puerto 8080 ocupado
+```bash
+# Cambia el puerto en application.properties
+server.port=8081
+
+# Y actualiza ApiConfig.java en Android:
+private static final String EMULATOR_URL = "http://10.0.2.2:8081/";
+```
+
+---
+
+## 📄 Licencia
+
+Este proyecto está bajo la Licencia MIT. Ver el archivo `LICENSE` para más detalles.
+
+---
+
+⭐ **¡Si te gusta el proyecto, dale una estrella!** ⭐
