@@ -9,7 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 
 @Service
 public class FCMTokenService {
@@ -128,5 +130,49 @@ public class FCMTokenService {
      */
     public boolean hasActiveToken(String userId) {
         return fcmTokenRepository.findByUserIdAndActiveTrue(userId).isPresent();
+    }
+    
+    /**
+     * Obtener estado detallado del token FCM de un usuario
+     */
+    public Map<String, Object> getTokenStatus(String userId) {
+        Map<String, Object> status = new HashMap<>();
+        
+        try {
+            // Buscar token activo
+            Optional<FCMToken> activeTokenOpt = fcmTokenRepository.findByUserIdAndActiveTrue(userId);
+            
+            status.put("userId", userId);
+            status.put("hasActiveToken", activeTokenOpt.isPresent());
+            
+            if (activeTokenOpt.isPresent()) {
+                FCMToken token = activeTokenOpt.get();
+                status.put("tokenExists", true);
+                status.put("deviceInfo", token.getDeviceInfo());
+                status.put("createdAt", token.getCreatedAt());
+                status.put("updatedAt", token.getUpdatedAt());
+                // No incluir el token completo por seguridad, solo los últimos caracteres
+                String fcmToken = token.getFcmToken();
+                if (fcmToken != null && fcmToken.length() > 10) {
+                    status.put("tokenPreview", "..." + fcmToken.substring(fcmToken.length() - 10));
+                } else {
+                    status.put("tokenPreview", "Token disponible");
+                }
+            } else {
+                status.put("tokenExists", false);
+                status.put("message", "No se encontró token FCM activo para este usuario");
+            }
+            
+            // Contar total de tokens (activos e inactivos) para este usuario
+            List<FCMToken> allUserTokens = fcmTokenRepository.findAllByUserId(userId);
+            status.put("totalTokens", allUserTokens.size());
+            status.put("activeTokens", allUserTokens.stream().mapToInt(t -> t.isActive() ? 1 : 0).sum());
+            
+        } catch (Exception e) {
+            logger.error("Error obteniendo estado del token para usuario {}: {}", userId, e.getMessage());
+            status.put("error", "Error obteniendo estado del token: " + e.getMessage());
+        }
+        
+        return status;
     }
 } 

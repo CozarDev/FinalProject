@@ -39,7 +39,7 @@ backend/build/
 # IDE
 .idea/
 .vscode/
-*.iml
+*.iml 
 
 # Scripts de deploy local (NO subir a Cloud Run)
 deploy-local.bat
