@@ -68,7 +68,7 @@ Los archivos `.example` están **completamente configurados** para funcionar inm
 - **Backend**: Se conecta a MongoDB local en puerto 27017
 - **Frontend**: Se conecta automáticamente al backend (detecta emulador vs dispositivo)
 - **Base de datos**: Se crea automáticamente al iniciar el backend
-- **Firebase**: ⚠️ **COMPLETAMENTE OPCIONAL** - Solo necesario para notificaciones push
+- **Firebase**: ⚠️ **COMENTADO POR DEFECTO** - Las notificaciones push están deshabilitadas
 
 ### 📱 **Detección Automática Android**
 
@@ -76,41 +76,39 @@ El frontend detecta automáticamente:
 - **Emulador Android**: Usa `http://10.0.2.2:8080/`
 - **Dispositivo físico**: Usa `http://192.168.1.100:8080/` (cambiar IP si es necesario)
 
-### 🔥 **Firebase (Notificaciones Push) - OPCIONAL**
+### 🔥 **Firebase (Notificaciones Push) - DESHABILITADO POR DEFECTO**
 
-Firebase **NO es necesario** para que el proyecto funcione. Si no lo configuras:
-
+**Estado actual: Firebase está COMENTADO**
 - ✅ **Funcionará**: Login, registro, empleados, turnos, todas las funciones principales
 - ❌ **No funcionará**: Solo las notificaciones push
+- 📱 **Logs que verás**: "🚫 Firebase: DESHABILITADO - Solo funciones básicas disponibles"
 
-**Para habilitar notificaciones push:**
+**Para HABILITAR notificaciones push (completamente opcional):**
 
-**Backend:**
+**Paso 1 - Backend:**
 1. Ve a [Firebase Console](https://console.firebase.google.com/)
 2. Crea un proyecto
 3. Ve a Configuración > Cuentas de servicio
 4. Descarga `firebase-service-account.json`
 5. Copia el archivo a `backend/src/main/resources/`
 
-**Frontend Android:**
+**Paso 2 - Frontend Android:**
 1. En el mismo proyecto Firebase
 2. Ve a Configuración > Aplicaciones
 3. Añade una app Android con package: `com.proyectofinal.frontend`
 4. Descarga `google-services.json`
 5. Copia el archivo a `frontend/app/`
-6. Rebuild el proyecto en Android Studio
 
-**Logs que verás:**
+**Paso 3 - Descomenta código Firebase:**
+6. En `frontend/app/build.gradle.kts`: Descomenta las líneas Firebase
+7. En `frontend/app/src/main/java/.../MainActivity.java`: Descomenta las líneas Firebase
+8. En `frontend/app/src/main/java/.../Services/TurnadoFirebaseMessagingService.java`: Descomenta TODO el archivo
+9. En `frontend/app/src/main/AndroidManifest.xml`: Descomenta las configuraciones Firebase
+10. Rebuild el proyecto en Android Studio
 
-**Backend:**
-- Con Firebase: `🔥 Firebase: HABILITADO - Notificaciones push disponibles`
-- Sin Firebase: `🚫 Firebase: DESHABILITADO - Solo funciones básicas disponibles`
-
-**Frontend Android:**
-- Con Firebase: `🔥 Firebase: HABILITADO - Notificaciones push configuradas`
-- Sin Firebase: `🚫 Firebase: NO DISPONIBLE - Las notificaciones push están deshabilitadas`
-
-**¡Ambos casos son completamente normales y funcionales!**
+**Logs tras habilitar Firebase:**
+- **Backend**: `🔥 Firebase: HABILITADO - Notificaciones push disponibles`
+- **Frontend**: `🔥 Firebase: HABILITADO - Notificaciones push configuradas`
 
 ---
 
@@ -140,14 +138,14 @@ TurnadoApp/
 - **Spring Security** (JWT)
 - **Spring Data MongoDB**
 - **Maven**
-- **Firebase Admin SDK**
+- **Firebase Admin SDK** (comentado por defecto)
 
 ### Frontend
 - **Android SDK**
 - **Java**
 - **Material Design**
 - **Retrofit** (HTTP client)
-- **Firebase FCM**
+- **Firebase FCM** (comentado por defecto)
 
 ### Base de Datos
 - **MongoDB 7.0+**
@@ -170,23 +168,26 @@ TurnadoApp/
 
 ### Backend no se conecta a MongoDB
 ```bash
-# Verifica que MongoDB esté ejecutándose
-mongosh # Si conecta, MongoDB está activo
-
-# Si no está activo:
-# Windows: Inicia el servicio MongoDB
-# macOS/Linux: sudo systemctl start mongod
+# Verificar que MongoDB está ejecutándose
+# Asegúrate de que esté en puerto 27017 (puerto por defecto)
 ```
 
-### Frontend no se conecta al backend
-```java
-// Verifica la IP en ApiConfig.java
-// Para dispositivo físico, cambia la IP por la de tu ordenador:
-private static final String LOCAL_DEVICE_URL = "http://TU_IP_AQUI:8080/";
+### App Android no se conecta al backend
+```bash
+# Si usas dispositivo físico, cambia la IP en ApiConfig.java:
+# Encuentra tu IP local con: ipconfig (Windows) o ifconfig (Mac/Linux)
+# Cambia "192.168.1.100" por tu IP real
+```
 
-// Encuentra tu IP:
-// Windows: ipconfig
-// macOS/Linux: ifconfig
+### ¿Cómo sé si Firebase está funcionando?
+```bash
+# Backend logs:
+# ✅ "🔥 Firebase: HABILITADO" = Funcionando
+# ❌ "🚫 Firebase: DESHABILITADO" = Solo funciones básicas (normal por defecto)
+
+# Frontend logs:
+# ✅ "🔥 Firebase: HABILITADO" = Notificaciones disponibles  
+# ❌ "🚫 Firebase: NO DISPONIBLE" = Solo funciones básicas (normal por defecto)
 ```
 
 ### Puerto 8080 ocupado
@@ -194,9 +195,7 @@ private static final String LOCAL_DEVICE_URL = "http://TU_IP_AQUI:8080/";
 # Cambia el puerto en application.properties
 server.port=8081
 
-# Y actualiza ApiConfig.java en Android:
-private static final String EMULATOR_URL = "http://10.0.2.2:8081/";
-```
+**¡El proyecto está diseñado para funcionar inmediatamente sin configuración adicional!**
 
 ---
 

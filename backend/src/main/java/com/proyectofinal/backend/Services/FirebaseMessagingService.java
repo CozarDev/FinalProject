@@ -1,6 +1,7 @@
 package com.proyectofinal.backend.Services;
 
 import com.google.firebase.messaging.*;
+import com.google.firebase.FirebaseApp;
 import com.proyectofinal.backend.Models.FCMToken;
 import com.proyectofinal.backend.Repositories.FCMTokenRepository;
 import org.slf4j.Logger;
@@ -23,11 +24,29 @@ public class FirebaseMessagingService {
     private FCMTokenRepository fcmTokenRepository;
     
     /**
+     * Verificar si Firebase está disponible
+     */
+    private boolean isFirebaseAvailable() {
+        try {
+            return !FirebaseApp.getApps().isEmpty();
+        } catch (Exception e) {
+            logger.warn("Error verificando disponibilidad de Firebase: {}", e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
      * Enviar notificación a un usuario específico
      */
     public CompletableFuture<String> sendNotificationToUser(String userId, String title, String body, Map<String, String> data) {
         return CompletableFuture.supplyAsync(() -> {
             try {
+                // Verificar si Firebase está disponible
+                if (!isFirebaseAvailable()) {
+                    logger.warn("🚫 Firebase no está disponible - Notificación ignorada para usuario: {}", userId);
+                    return "Firebase not available - notification skipped";
+                }
+                
                 // Buscar token activo del usuario
                 var tokenOpt = fcmTokenRepository.findByUserIdAndActiveTrue(userId);
                 if (tokenOpt.isEmpty()) {
@@ -53,6 +72,13 @@ public class FirebaseMessagingService {
             List<String> results = new ArrayList<>();
             
             try {
+                // Verificar si Firebase está disponible
+                if (!isFirebaseAvailable()) {
+                    logger.warn("🚫 Firebase no está disponible - Notificaciones ignoradas para usuarios: {}", userIds);
+                    results.add("Firebase not available - notifications skipped");
+                    return results;
+                }
+                
                 // Obtener tokens de todos los usuarios
                 List<FCMToken> tokens = fcmTokenRepository.findActiveTokensByUserIds(userIds);
                 
@@ -87,6 +113,12 @@ public class FirebaseMessagingService {
      */
     private String sendNotificationToToken(String token, String title, String body, Map<String, String> data) {
         try {
+            // Verificación adicional de seguridad
+            if (!isFirebaseAvailable()) {
+                logger.warn("🚫 Firebase no está disponible - No se puede enviar notificación");
+                return "Firebase not available";
+            }
+            
             // Construir el mensaje
             Message.Builder messageBuilder = Message.builder()
                     .setToken(token)
@@ -127,6 +159,9 @@ public class FirebaseMessagingService {
             }
             
             throw new RuntimeException("Error enviando notificación: " + e.getMessage());
+        } catch (Exception e) {
+            logger.error("Error general enviando notificación: {}", e.getMessage());
+            return "Error: " + e.getMessage();
         }
     }
     

@@ -33,7 +33,8 @@ import com.proyectofinal.frontend.Fragments.ManageShiftAssignmentsFragment;
 import com.proyectofinal.frontend.Fragments.WorkReportsFragment;
 import com.proyectofinal.frontend.R;
 
-import com.google.firebase.messaging.FirebaseMessaging;
+// 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
+// import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.List;
 
@@ -74,8 +75,8 @@ public class MainActivity extends AppCompatActivity {
         // Comprobar el rol del usuario
         checkUserRole();
         
-        // Inicializar Firebase Cloud Messaging
-        initializeFirebaseMessaging();
+        // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
+        // initializeFirebaseMessaging();
     }
     
     private void checkUserRole() {
@@ -630,7 +631,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
     
+    // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
     // Método para inicializar Firebase Cloud Messaging
+    /*
     private void initializeFirebaseMessaging() {
         try {
             // Verificar si Firebase está disponible
@@ -678,10 +681,13 @@ public class MainActivity extends AppCompatActivity {
             Log.i("MainActivity", "📱 La app funcionará normalmente sin notificaciones push");
         }
     }
+    */
      
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
+        /*
         if (requestCode == 1001) {
             if (grantResults.length > 0 && grantResults[0] == getPackageManager().PERMISSION_GRANTED) {
                 Toast.makeText(this, "Notificaciones habilitadas", Toast.LENGTH_SHORT).show();
@@ -689,9 +695,12 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(this, "Las notificaciones están deshabilitadas. Puedes habilitarlas en Configuración.", Toast.LENGTH_LONG).show();
             }
         }
+        */
     }
      
+    // 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
     // Método para enviar token FCM al servidor
+    /*
     private void sendTokenToServer(String fcmToken) {
         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
         String userId = prefs.getString("USER_ID", "");
@@ -722,4 +731,5 @@ public class MainActivity extends AppCompatActivity {
             Log.w("MainActivity", "No se puede enviar token FCM - usuario no autenticado");
         }
     }
+    */
 }

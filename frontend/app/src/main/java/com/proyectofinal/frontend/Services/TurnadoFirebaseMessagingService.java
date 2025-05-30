@@ -1,3 +1,14 @@
+// 🔥 SERVICIO FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥
+// ==================================================================================
+// INSTRUCCIONES PARA HABILITAR FIREBASE:
+// 1. Configura google-services.json en frontend/app/
+// 2. Descomenta las dependencias Firebase en build.gradle.kts
+// 3. Descomenta el plugin google-services en build.gradle.kts
+// 4. Descomenta TODO este archivo (quita /* y */)
+// 5. Rebuild el proyecto
+// ==================================================================================
+
+/*
 package com.proyectofinal.frontend.Services;
 
 import android.app.NotificationChannel;
@@ -234,3 +245,4 @@ public class TurnadoFirebaseMessagingService extends FirebaseMessagingService {
         Log.d(TAG, "Token FCM guardado localmente");
     }
 } 
+*/ 

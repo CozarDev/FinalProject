@@ -5,7 +5,8 @@
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥 -->
+    <!-- <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> -->
 
     <application
         android:usesCleartextTraffic="true"
@@ -32,9 +33,11 @@
         <activity android:name=".Activities.MainActivity"
             android:exported="false"/>
 
-        <!-- Firebase Cloud Messaging Service - Solo se registra si Firebase está disponible -->
-        <!-- NOTA: Si no tienes google-services.json, estas configuraciones no causan errores -->
-        <!-- El sistema Android simplemente ignora servicios de clases que no existen -->
+        <!-- 🔥 FIREBASE COMENTADO - DESCOMENTA SI QUIERES HABILITAR NOTIFICACIONES PUSH 🔥 -->
+        <!--
+        Firebase Cloud Messaging Service - Solo se registra si Firebase está disponible
+        NOTA: Si no tienes google-services.json, estas configuraciones no causan errores
+        El sistema Android simplemente ignora servicios de clases que no existen
         <service
             android:name=".Services.TurnadoFirebaseMessagingService"
             android:exported="false"
@@ -44,8 +47,8 @@
             </intent-filter>
         </service>
 
-        <!-- Firebase Cloud Messaging configuraciones -->
-        <!-- Estas meta-data son ignoradas si Firebase no está disponible -->
+        Firebase Cloud Messaging configuraciones
+        Estas meta-data son ignoradas si Firebase no está disponible
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_notification" />
@@ -57,6 +60,7 @@
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_channel_id"
             android:value="turnado_notifications" />
+        -->
 
     </application>
 
